@@ -9,8 +9,9 @@ param parOpenAiApiKey string = ''
 
 // azure container registry
 resource acr 'Microsoft.ContainerRegistry/registries@2023-01-01-preview' = {
-  name: '${parPrefix}acr${uniqueString(resourceGroup().id)}'
+  // name: '${parPrefix}acr${uniqueString(resourceGroup().id)}'
   location: parLocation
+  name: 'acr1079'
   sku: {
     name: 'Standard'
   }
@@ -22,7 +23,7 @@ resource acr 'Microsoft.ContainerRegistry/registries@2023-01-01-preview' = {
 
 // deploy key vault
 resource keyVault 'Microsoft.KeyVault/vaults@2022-07-01' = {
-  name: '${parPrefix}-kv'
+  name: '${parPrefix}-kv1079'
   location: parLocation
   properties: {    
     sku: {
@@ -232,7 +233,7 @@ resource api 'Microsoft.App/containerApps@2022-06-01-preview' = {
           env: [
             {
               name: 'TYPE'
-              value: 'Azure'
+              value: 'OpenAI'
             }
             {
               name: 'AZURE_KEY_VAULT_URL'
