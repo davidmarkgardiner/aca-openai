@@ -6,6 +6,7 @@ import logging
 from azure.identity import ManagedIdentityCredential, DefaultAzureCredential
 from azure.keyvault.secrets import SecretClient
 
+
 def read_secret_from_keyvault(vault_url, secret_name, managed_identity_client_id):
     # Create a ManagedIdentityCredential using the client ID of the user-assigned managed identity
     if os.getenv("ENV", "Azure") == "Local":
@@ -141,8 +142,10 @@ def generate_azure(text, sentiment):
         # You can use the OpenAI SDK for Python with base, type and version set
         # see https://learn.microsoft.com/en-us/azure/cognitive-services/openai/quickstart?pivots=programming-language-python
         try:
+        # "https://oa-geba-sus.openai.azure.com/openai/deployments/tweeter/completions?api-version=2022-12-01",
+            url = os.getenv('OPENAI_URL')
             response = requests.post(
-                "https://oa-geba-sus.openai.azure.com/openai/deployments/tweeter/completions?api-version=2022-12-01",
+                url,
                 json=payload,
                 headers={
                     "api-key": azure_api_key,
