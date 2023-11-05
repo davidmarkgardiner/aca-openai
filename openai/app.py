@@ -52,6 +52,7 @@ managed_identity_client_id = os.getenv('MANAGED_IDENTITY_CLIENT_ID', None)
 # Set OpenAI API key from environment
 if type == 'OpenAI':
     openai.api_key = read_secret_from_keyvault(vault_url, "openai-api-key", managed_identity_client_id)
+    # openai.organization = 'org-MNpauvXg9H4CUN2MHXrvjyYT'
     logging.info("Using OpenAI")
     model = os.getenv("API", "completion") # other option is chat
 
