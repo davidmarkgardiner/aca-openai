@@ -236,6 +236,10 @@ resource api 'Microsoft.App/containerApps@2022-06-01-preview' = {
               value: 'OpenAI'
             }
             {
+              name: 'OPENAI_URL'
+              value: 'https://{ENDPOINT_URL}/openai/deployments/tweeter/completions?api-version=2022-12-01'
+            }
+            {
               name: 'AZURE_KEY_VAULT_URL'
               value: keyVault.properties.vaultUri
             }
