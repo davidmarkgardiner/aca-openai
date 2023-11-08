@@ -67,4 +67,4 @@ In the ai-webui container app (assuming your prefix is ai), find the Application
 
 ![tweet](images/tweet.png)
 
-![tweet](images/tweet2.png)
+![tweet](images/tweet2.png) 
