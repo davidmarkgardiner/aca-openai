@@ -93,4 +93,4 @@ export KUBECONFIG=./kubeconfig-admin
 # Admin can only view specified namespace
 ```
 ![](.\rbac-images\admin.png)
-![](/rbac-images\admin.png)
+![](/golang_dapr/aca-openai/rbac-images/admin.pngrbac-images\admin.png)
