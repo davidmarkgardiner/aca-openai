@@ -39,7 +39,8 @@ az role assignment create --assignee $reader --role "Azure Kubernetes Service RB
 ```
 ![](.\rbac-images\reader-roles.png)
 ![](.\rbac-images\admin-roles.png)
-
+![](/rbac-images\reader-roles.png)
+![](/rbac-images\admin-roles.png)
 ### Create Users
 ```
 az ad user create --display-name "mr reader" --password "" --user-principal-name mr.reader@domain.onmicrosoft.com
@@ -60,7 +61,10 @@ az ad group member add --group "aksadmin" --member-id
 
 ![](.\rbac-images\cluster-roles-assignment.png)
 
+![](/rbac-images\reader-members.png)
+![](/rbac-images\admin-members.png)
 
+![](/rbac-images\cluster-roles-assignment.png)
 
 
 
@@ -76,7 +80,7 @@ export KUBECONFIG=./kubeconfig-reader
 # Reader can only view specified namespace
 ```
 ![](.\rbac-images\reader.png)
-
+![](/rbac-images\reader.png)
 
 ### Evidence Admin
 ```sh
@@ -89,3 +93,4 @@ export KUBECONFIG=./kubeconfig-admin
 # Admin can only view specified namespace
 ```
 ![](.\rbac-images\admin.png)
+![](/rbac-images\admin.png)
