@@ -1,0 +1,8 @@
+# full name
+grep -r "2023-01-02-preview" .
+# regex pattern
+grep -r -E "[0-9]{4}-[0-9]{2}-[0-9]{2}-preview" .
+
+# search and replace
+sed -i '' 's/2023-01-02-preview/2024-01-01/g' . # stable
+sed -i '' 's/2023-01-02-preview/2024-01-02-preview/g' . # preview
