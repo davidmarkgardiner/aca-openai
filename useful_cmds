@@ -19,3 +19,5 @@ kubectl get pv -o json | jq -r '.items[] | select(.spec.azureDisk) | .spec.azure
     storageAccountName=$(echo $diskUri | cut -d'/' -f3 | cut -d'.' -f1)
     echo "Storage account connected to AKS: $storageAccountName"
 done
+
+kubectl get pv -o json | jq -r '.items[] | select(.spec.csi.volumeAttributes.storageaccounts) | .spec.csi.volumeAttributes.storageaccounts'
