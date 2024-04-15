@@ -22,15 +22,14 @@ done
 
 kubectl get pv -o json | jq -r '.items[] | select(.spec.csi.volumeAttributes.storageaccounts) | .spec.csi.volumeAttributes.storageaccounts'
 
-
 #!/bin/bash
 
-# Get the AKS credentials
-az aks get-credentials --resource-group <resource-group> --name <cluster-name>
-
 # Get all Persistent Volumes in the cluster
-kubectl get pv -o json | jq -r '.items[] | select(.spec.azureDisk) | .spec.azureDisk.diskURI' | while read -r diskUri; do
-    # Extract the storage account name from the disk URI
-    storageAccountName=$(echo $diskUri | cut -d'/' -f3 | cut -d'.' -f1)
-    echo "Storage account connected to AKS: $storageAccountName"
+pvs=$(kubectl get pv -o json | jq -r '.items[] | select(.spec.azureDisk) | .spec.azureDisk.diskURI')
+
+# Loop through each PV
+for pv in $pvs; do
+    # Run your command against the PV
+    echo "Processing PV: $pv"
+    # Add your command here
 done
