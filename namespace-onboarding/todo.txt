@@ -14,3 +14,6 @@ remove logic
 istio logic
 
 canary test app?
+
+    # Convert the first letter to uppercase and the rest to lowercase
+    $jsonData.action = $jsonData.action.Substring(0,1).ToUpper() + $jsonData.action.Substring(1).ToLower()
