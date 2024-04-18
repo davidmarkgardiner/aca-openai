@@ -47,6 +47,11 @@ function ProcessJsonFile {
 
     # Convert the first letter to uppercase and the rest to lowercase
     $jsonData.action = $jsonData.action.Substring(0,1).ToUpper() + $jsonData.action.Substring(1).ToLower()
+    # Convert $jsonData.namespace $jsonData.suffix $jsonData.region to lowercase
+    $jsonData.namespace = $jsonData.namespace.ToLower()
+    $jsonData.suffix = $jsonData.suffix.ToLower()
+    $jsonData.region = $jsonData.region.ToLower()
+    
 
 
     if ($regionData.ContainsKey($region)) {
