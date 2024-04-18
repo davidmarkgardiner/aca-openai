@@ -1,0 +1,11 @@
+namespace: at65999
+opEnvironment: dev
+action: add
+swci: at65999
+billingReference: AB-BC-ABCDE-ABCDE
+source: GSNOW
+requestedBy: david.gardiner@ubs.com
+region: westeurope
+swcID: AA98765
+id: 9729bd07c4fec573d27fd73f94f2cdc1
+CI_COMMIT_TAG: ${CI_COMMIT_TAG}

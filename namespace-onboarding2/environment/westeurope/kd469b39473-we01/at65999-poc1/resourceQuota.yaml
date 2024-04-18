@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: example-quota
+  namespace: at65999
+spec:
+  hard:
+    # The container can never consume more than the memory amount or CPU amount indicated. 
+    # requests.cpu: "1" # 1 CPU
+    # requests.memory: 1Gi # 1 GiB of memory
+    # Limits are the minimum guaranteed amount of a resource that is reserved for a container.
+    limits.cpu: 500m # 2 CPUs
+    limits.memory: 3 # 2 GiB of memory
+    # Across all persistent volume claims, the sum of storage requests cannot exceed this value.
+    requests.storage: 128 # 10 GiB of storage

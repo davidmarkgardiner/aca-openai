@@ -1,0 +1,12 @@
+namespace: at52223
+delete: at52223
+opEnvironment: dev
+action: remove
+swci: at52223
+billingReference: AB-BC-ABCDE-ABCDE
+source: GSNOW
+requestedBy: david.gardiner@ubs.com
+region: westeurope
+swcID: AA98765
+uniqueId: 792b3abed3400a3a17597bb5365c45c8
+CI_COMMIT_TAG: ${CI_COMMIT_TAG}

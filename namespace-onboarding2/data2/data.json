@@ -1,0 +1,17 @@
+{
+    "action": "REMOVE", 
+    "swci": "at52223",
+    "suffix": "OB-test",
+    "region": "westeurope",
+    "opEnvironment": "DEV",
+    "resourceQuotaCPU": "500m",
+    "resourceQuotaMemoryGB": "3",
+    "resourceQuotaStorageGB": "128",
+    "billingReference": "AB-BC-abcde-ABCDE",
+    "source": "GSNOW",
+    "swcID": "aa98765",
+    "dataClassification": "public",
+    "appSubdomain": "",
+    "allowAccessFromNS": "at98765",
+    "requestedBy": "david.gardiner@ubs.com"
+}
