@@ -96,7 +96,7 @@ if ($jsonFiles.Count -eq 0) {
 
 # # ... rest of your script ...
 
-# $accessToken = Get-AccessTokenForFunction -scope "133d5755-4074-4d6e-ad38-eb2a6ad12903/.default" -clientid "24b41d61-87b2-4fd9-8be7-a0aef35391bf" -secret "Vo_8Q~MI5NC7RbB1kb9vL_0k3KtUVkHR2fYiVaoR" -tenantID "550cfcda-8a2d-452c-ba71-d6bc6bf5bb31" -requestAccessTokenUri 'https://login.microsoftonline.com/550cfcda-8a2d-452c-ba71-d6bc6bf5bb31/oauth2/v2.0/token'
+# $accessToken = Get-AccessTokenForFunction -scope 
 # $apiEndpoint = https://azurewebsites.net/api/aksnamespaceroleassign
 
 # foreach ($jsonfile in $jsonFiles) {
