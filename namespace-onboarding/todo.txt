@@ -1,0 +1,16 @@
+
+add openv label
+uppercase lowercase
+chnage aacode to swcID
+UNIQUE IDENTITIFER
+resource quota labels
+rleeasae evrsion this willl be from gitlab
+
+
+
+move files when complete, not neccsessart
+check this is working
+remove logic
+istio logic
+
+canary test app?
