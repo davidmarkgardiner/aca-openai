@@ -397,9 +397,10 @@ func isValidResourceQuotaCPU(resourceQuotaCPU string) bool {
 // }
 
 
-// verify that resourceQuotaMemoryGB is between 0-64 GB
+// verify that resourceQuotaMemoryGB is between 1-64 GB
 func isValidResourceQuotaMemoryGB(resourceQuotaMemoryGB string) bool {
-	match, _ := regexp.MatchString(`^(100m|[1-9][0-9]?[0-9]?m|[1-9]Gi|[1-5][0-9]Gi|6[0-4]Gi)$`, resourceQuotaMemoryGB)
+	match, _ := regexp.MatchString(`^(0|[1-9][0-9]?|64)$`, resourceQuotaMemoryGB)
+	// match, _ := regexp.MatchString(`^(100m|[1-9][0-9]?[0-9]?m|[1-9]Gi|[1-5][0-9]Gi|6[0-4]Gi)$`, resourceQuotaMemoryGB)
 	if match {
 		fmt.Printf("ResourceQuotaMemoryGB: %s\n", resourceQuotaMemoryGB)
 		return true

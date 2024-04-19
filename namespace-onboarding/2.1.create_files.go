@@ -2,12 +2,12 @@ package main
 
 // Import necessary packages
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"encoding/json" // For JSON processing
 	"fmt"           // For console output
 	"io"
 	"log"
-    "crypto/rand"
-    "encoding/hex"
 	// "log"
 	// "io"
 	"os" // For filesystem operations
@@ -16,25 +16,24 @@ import (
 	"strings"       // For string manipulation
 )
 
-
 // Item represents the structure of the data in the JSON files
 type Item struct {
-	Swci               string `json:"swci"`
-	Suffix             string `json:"suffix"`
-	Region             string `json:"region"`
-	Action             string `json:"action"`
-	AppSubDomain       string `json:"appSubDomain"`
-	SwcID               string `json:"swcID"`
-	RequestedBy        string `json:"requestedBy"`
-	OpEnvironment      string `json:"opEnvironment"`
-	ResourceQuotaCPU 	string `json:"resourceQuotaCPU"`
-	ResourceQuotaMemoryGB      string `json:"resourceQuotaMemoryGB"`
+	Swci                   string `json:"swci"`
+	Suffix                 string `json:"suffix"`
+	Region                 string `json:"region"`
+	Action                 string `json:"action"`
+	AppSubDomain           string `json:"appSubDomain"`
+	SwcID                  string `json:"swcID"`
+	RequestedBy            string `json:"requestedBy"`
+	OpEnvironment          string `json:"opEnvironment"`
+	ResourceQuotaCPU       string `json:"resourceQuotaCPU"`
+	ResourceQuotaMemoryGB  string `json:"resourceQuotaMemoryGB"`
 	ResourceQuotaStorageGB string `json:"resourceQuotaStorageGB"`
-	BillingReference   string `json:"billingReference"`
-	TicketReference    string `json:"ticketReference"`
-	Source             string `json:"source"`
-	AllowAccessFromNS  string `json:"allowAccessFromNS"`
-	DataClassification string `json:"dataClassification"`
+	BillingReference       string `json:"billingReference"`
+	TicketReference        string `json:"ticketReference"`
+	Source                 string `json:"source"`
+	AllowAccessFromNS      string `json:"allowAccessFromNS"`
+	DataClassification     string `json:"dataClassification"`
 }
 
 func main() {
@@ -125,7 +124,7 @@ func main() {
 			item.Source = strings.ToUpper(item.Source)
 			item.SwcID = strings.ToUpper(item.SwcID)
 
-			// if 
+			// if
 			// Print environment variables
 			clustername := os.Getenv("clustername")
 			domain := os.Getenv("domain")
@@ -146,6 +145,22 @@ func main() {
 			// domain := "test-akseng-gitops.azpriv-cloud.ubs.net"
 			if item.AppSubDomain == "" {
 				item.AppSubDomain = item.Swci + "-" + item.OpEnvironment + "-" + item.Suffix
+			}
+			// allows values 0.1 > 8 
+			// if ResourceQuotaCPU is empty then set to defualt value 4
+			if item.ResourceQuotaCPU == "" {
+				item.ResourceQuotaCPU = "4"
+			}
+			// ResourceQuotaMemoryGB
+			// allowed valued 1-64 if empty then set to defualt value 8
+			if item.ResourceQuotaMemoryGB == "" {
+				item.ResourceQuotaMemoryGB = "8"
+			}
+
+			// ResourceQuotaStorageGB
+			// allowed values if emptyt defaul value is 0
+			if item.ResourceQuotaStorageGB == "" {
+				item.ResourceQuotaStorageGB = "0"
 			}
 			if item.Action == "add" || item.Action == "modify" {
 				// Directory to create for the environment
