@@ -24,3 +24,6 @@ Yes, you can send data to a webhook in Azure DevOps (ADO) using service hooks. H
 4. **Send Data to the Webhook**: Whenever the event you configured in step 2 occurs, ADO will send a POST request to your webhook with the JSON payload you configured in step 3.
 
 Please note that the actual implementation may vary based on your specific requirements and environment. Also, make sure that your webhook is set up to receive POST requests and that it can handle the JSON payload sent by ADO.
+
+gateway api
+https://konghq.com/products/kong-gateway
