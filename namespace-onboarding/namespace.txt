@@ -1,0 +1,9 @@
+# Get the current context and namespace
+current_context=$(kubectl config current-context)
+current_namespace=$(kubectl config view --minify --output 'jsonpath={..namespace}')
+
+# Check if the current namespace is the one allowed for deployment
+if [[ "$current_namespace" != "namespace-b" ]]; then
+  echo "Error: Deployments are only allowed in namespace-b"
+  exit 1
+fi
