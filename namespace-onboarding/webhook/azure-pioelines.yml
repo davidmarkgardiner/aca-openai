@@ -1,0 +1,105 @@
+trigger: none
+pr: none
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+resources:
+  webhooks:
+    - webhook: danatWebHook
+      connection: danatServiceConnection
+
+stages:
+- stage: WebHookApproval
+  displayName: Webhook Approval
+  jobs:
+  - job: Approval
+    pool: server
+    steps:
+      - task: ManualValidation@0
+        displayName: Validates trigger
+        timeoutInMinutes: 2880
+        inputs:
+          notifyUsers: davidmarkgardiner@gmail.com
+          instructions: 'Please validate the webhook call and resume it.'
+
+- stage: Build
+  displayName: Build a container image
+  jobs:
+  - job: Build_job
+    steps:
+      - bash: |
+          echo "Action: ${{ parameters.danatWebHook.action }}"
+          echo "SWCI: ${{ parameters.danatWebHook.swci }}"
+          echo "Suffix: ${{ parameters.danatWebHook.suffix }}"
+          echo "Region: ${{ parameters.danatWebHook.region }}"
+          echo "OP Environment: ${{ parameters.danatWebHook.opEnvironment }}"
+          echo "Resource Quota CPU: ${{ parameters.danatWebHook.resourceQuotaCPU }}"
+          echo "Resource Quota Memory GB: ${{ parameters.danatWebHook.resourceQuotaMemoryGB }}"
+          echo "Resource Quota Storage GB: ${{ parameters.danatWebHook.resourceQuotaStorageGB }}"
+          echo "Billing Reference: ${{ parameters.danatWebHook.billingReference }}"
+          echo "Source: ${{ parameters.danatWebHook.source }}"
+          echo "SWC ID: ${{ parameters.danatWebHook.swcID }}"
+          echo "Data Classification: ${{ parameters.danatWebHook.dataClassification }}"
+          echo "App Subdomain: ${{ parameters.danatWebHook.appSubdomain }}"
+          echo "Allow Access From NS: ${{ parameters.danatWebHook.allowAccessFromNS }}"
+          echo "Requested By: ${{ parameters.danatWebHook.requestedBy }}"
+     - script: |
+          echo "##vso[task.setvariable variable=ACTION]${{ parameters.danatWebHook.action }}"
+          echo "##vso[task.setvariable variable=SWCI]${{ parameters.danatWebHook.swci }}"
+          echo "##vso[task.setvariable variable=SUFFIX]${{ parameters.danatWebHook.suffix }}"
+          echo "##vso[task.setvariable variable=REGION]${{ parameters.danatWebHook.region }}"
+          echo "##vso[task.setvariable variable=OP_ENVIRONMENT]${{ parameters.danatWebHook.opEnvironment }}"
+          echo "##vso[task.setvariable variable=RESOURCE_QUOTA_CPU]${{ parameters.danatWebHook.resourceQuotaCPU }}"
+          echo "##vso[task.setvariable variable=RESOURCE_QUOTA_MEMORY_GB]${{ parameters.danatWebHook.resourceQuotaMemoryGB }}"
+          echo "##vso[task.setvariable variable=RESOURCE_QUOTA_STORAGE_GB]${{ parameters.danatWebHook.resourceQuotaStorageGB }}"
+          echo "##vso[task.setvariable variable=BILLING_REFERENCE]${{ parameters.danatWebHook.billingReference }}"
+          echo "##vso[task.setvariable variable=SOURCE]${{ parameters.danatWebHook.source }}"
+          echo "##vso[task.setvariable variable=SWC_ID]${{ parameters.danatWebHook.swcID }}"
+          echo "##vso[task.setvariable variable=DATA_CLASSIFICATION]${{ parameters.danatWebHook.dataClassification }}"
+          echo "##vso[task.setvariable variable=APP_SUBDOMAIN]${{ parameters.danatWebHook.appSubdomain }}"
+          echo "##vso[task.setvariable variable=ALLOW_ACCESS_FROM_NS]${{ parameters.danatWebHook.allowAccessFromNS }}"
+          echo "##vso[task.setvariable variable=REQUESTED_BY]${{ parameters.danatWebHook.requestedBy }}"
+      - task: GoTool@0
+        inputs:
+          version: '1.13.5'
+      - task: Go@0
+        inputs:
+          command: 'get'
+          arguments: '-d'
+          workingDirectory: '$(System.DefaultWorkingDirectory)'
+      - task: CopyFiles@2
+        inputs:
+          TargetFolder: '$(Build.ArtifactStagingDirectory)'
+      - task: PublishBuildArtifacts@1
+        inputs:
+          artifactName: drop
+      - script: |
+          mkdir -p '$(GOBIN)'
+          mkdir -p '$(GOPATH)/pkg'
+          mkdir -p '$(modulePath)'
+          shopt -s extglob
+          shopt -s dotglob
+          mv !(gopath) '$(modulePath)'
+          echo '##vso[task.prependpath]$(GOBIN)'
+          echo '##vso[task.prependpath]$(GOROOT)/bin'
+        displayName: 'Set up the Go workspace'
+      - script: |
+          go version
+          go get -v -t -d ./...
+          if [ -f Gopkg.toml ]; then
+              curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+              dep ensure
+          fi
+          # go build -v .
+          # go get k8s.io/client-go@latest
+          # go mod tidy
+          # go test -v validation_test.go
+        workingDirectory: '$(modulePath)'
+        displayName: 'Get dependencies, then build'
+
+      - task: Go@0
+        inputs:
+          command: 'test'
+          arguments: '-v'
+          workingDirectory: '$(modulePath)'
