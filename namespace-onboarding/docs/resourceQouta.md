@@ -55,3 +55,18 @@ For example, if you set a memory request of 256 MiB for a container, and that co
 If you set a memory limit of 4GiB for that container, the kubelet (and container runtime) enforce the limit. The runtime prevents the container from using more than the configured resource limit. For example: when a process in the container tries to consume more than the allowed amount of memory, the system kernel terminates the process that attempted the allocation, with an out of memory (OOM) error.
 
 Limits can be implemented either reactively (the system intervenes once it sees a violation) or by enforcement (the system prevents the container from ever exceeding the limit). Different runtimes can have different ways to implement the same restrictions.
+
+
+## Rolling Update
+
+In Kubernetes, `requests` and `limits` are different parameters that you can set to control the resources a container is guaranteed and the resources a container can use.
+
+- `Requests`: This is the amount of a specific resource that the system will guarantee to the container. If you set a CPU request of 1Gi for a container, Kubernetes will ensure that the container always has 1Gi of CPU available.
+
+- `Limits`: This is the maximum amount of a specific resource that a container is allowed to use. If you set a CPU limit of 2Gi for a container, the container is allowed to use up to 2Gi of CPU.
+
+If you need to run 10 pods, each requesting 1Gi of CPU and 1Gi of memory, you should set the resource quota for the namespace to at least 10Gi of CPU and 10Gi of memory to accommodate the `requests`. This will ensure that each pod gets the resources it needs.
+
+However, if you want to allow for rolling updates, you should consider the maximum number of pods that could be running at the same time during the update process. If you update the pods one at a time, you might need resources for an extra pod during the update, so you would set the resource quota to 11Gi. If you update the pods in larger batches, you would need to increase the resource quota accordingly.
+
+The same logic applies to the `limits`. If each pod has a limit of 2Gi of CPU and 2Gi of memory, and you want to allow for rolling updates, you should set the resource quota for the limits to accommodate the maximum number of pods that could be running at the same time.
