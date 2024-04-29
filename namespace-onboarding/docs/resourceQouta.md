@@ -30,3 +30,28 @@ spec:
 ## TODO
 - logic for hard limit.. this can be double amount reserved?
 - we can tag for high/ low resource so we can use to herd / bill later
+
+## Further Explaniation
+
+In Kubernetes, `requests` and `limits` are two different parameters you can set to control the resources a container is guaranteed and the resources a container can use.
+
+- `Requests`: This is the amount of a specific resource that the system will guarantee to the container. For example, if you set a memory request of 256Mi for a container, Kubernetes will ensure that the container always has 256Mi of memory available.
+
+- `Limits`: This is the maximum amount of a specific resource that a container is allowed to exceed. For example, if you set a memory limit of 512Mi for a container, the container is allowed to use more than its requested 256Mi of memory but is not allowed to use more than 512Mi.
+
+In the context of a ResourceQuota, these parameters are used to control the total amount of resources that can be requested or limited by all the containers in a namespace.
+
+- `requests.cpu`, `requests.memory`, `requests.storage`, and `requests.ephemeral-storage` quota the total amount of resources that can be requested by containers in the namespace.
+
+- `limits.cpu`, `limits.memory`, and `limits.ephemeral-storage` quota the total amount of resources that can be used by containers in the namespace.
+
+If a container exceeds its memory limit, it could be terminated. If it exceeds its CPU limit, it could be throttled.
+
+## Requests and limits 
+If the node where a Pod is running has enough of a resource available, it's possible (and allowed) for a container to use more resource than its request for that resource specifies. However, a container is not allowed to use more than its resource limit.
+
+For example, if you set a memory request of 256 MiB for a container, and that container is in a Pod scheduled to a Node with 8GiB of memory and no other Pods, then the container can try to use more RAM.
+
+If you set a memory limit of 4GiB for that container, the kubelet (and container runtime) enforce the limit. The runtime prevents the container from using more than the configured resource limit. For example: when a process in the container tries to consume more than the allowed amount of memory, the system kernel terminates the process that attempted the allocation, with an out of memory (OOM) error.
+
+Limits can be implemented either reactively (the system intervenes once it sees a violation) or by enforcement (the system prevents the container from ever exceeding the limit). Different runtimes can have different ways to implement the same restrictions.
