@@ -1,0 +1,12 @@
+namespace: at68955
+swci: at68955
+overlay: at68955
+opEnvironment: dev
+action: add
+billingReference: AB-BC-ABCDE-ABCDE
+source: GSNOW
+requestedBy: david.gardiner@ubs.com
+region: westeurope
+swcID: AA98765
+uniqueId: 3dd2514ffcca3266901a5d0abeba42d3
+CI_COMMIT_TAG: ${CI_COMMIT_TAG}

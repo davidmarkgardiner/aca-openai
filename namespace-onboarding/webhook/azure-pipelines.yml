@@ -1,0 +1,190 @@
+trigger: none
+pr: none
+pool: Keda
+# pool:
+#   vmImage: 'ubuntu-latest'
+
+variables:
+  GitUserName: 'david.gardiner'
+resources:
+  webhooks:
+    - webhook: danatWebHook2
+      connection: danatServiceConnection2
+
+# This stage is triggered when the pipeline is invoked by webhook
+stages:
+# - stage: WebHookApproval
+#   displayName: Webhook Approval
+#   jobs:
+#   - job: Approval
+#     pool: server
+#     steps:
+#       - task: ManualValidation@0
+#         displayName: Validates trigger
+#         timeoutInMinutes: 2880
+#         inputs:
+#           notifyUsers: davidmarkgardiner@gmail.com
+#           instructions: 'Please validate the webhook call and resume it.'
+
+- stage: Build
+  displayName: Build a container image
+  jobs:
+  - job: Build_job
+    steps:
+      - script: |
+          echo "Action: ${{ parameters.danatWebHook2.action }}"
+          echo "SWCI: ${{ parameters.danatWebHook2.swci }}"
+          echo "Suffix: ${{ parameters.danatWebHook2.suffix }}"
+          echo "Region: ${{ parameters.danatWebHook2.region }}"
+          echo "OP Environment: ${{ parameters.danatWebHook2.opEnvironment }}"
+          echo "Resource Quota CPU: ${{ parameters.danatWebHook2.resourceQuotaCPU }}"
+          echo "Resource Quota Memory GB: ${{ parameters.danatWebHook2.resourceQuotaMemoryGB }}"
+          echo "Resource Quota Storage GB: ${{ parameters.danatWebHook2.resourceQuotaStorageGB }}"
+          echo "Billing Reference: ${{ parameters.danatWebHook2.billingReference }}"
+          echo "Source: ${{ parameters.danatWebHook2.source }}"
+          echo "SWC ID: ${{ parameters.danatWebHook2.swcID }}"
+          echo "Data Classification: ${{ parameters.danatWebHook2.dataClassification }}"
+          echo "App Subdomain: ${{ parameters.danatWebHook2.appSubdomain }}"
+          echo "Allow Access From NS: ${{ parameters.danatWebHook2.allowAccessFromNS }}"
+          echo "Requested By: ${{ parameters.danatWebHook2.requestedBy }}"
+          echo "##vso[task.setvariable variable=ACTION]${{ parameters.danatWebHook2.action }}"
+          echo "##vso[task.setvariable variable=SWCI]${{ parameters.danatWebHook2.swci }}"
+          echo "##vso[task.setvariable variable=SUFFIX]${{ parameters.danatWebHook2.suffix }}"
+          echo "##vso[task.setvariable variable=REGION]${{ parameters.danatWebHook2.region }}"
+          echo "##vso[task.setvariable variable=OP_ENVIRONMENT]${{ parameters.danatWebHook2.opEnvironment }}"
+          echo "##vso[task.setvariable variable=RESOURCE_QUOTA_CPU]${{ parameters.danatWebHook2.resourceQuotaCPU }}"
+          echo "##vso[task.setvariable variable=RESOURCE_QUOTA_MEMORY_GB]${{ parameters.danatWebHook2.resourceQuotaMemoryGB }}"
+          echo "##vso[task.setvariable variable=RESOURCE_QUOTA_STORAGE_GB]${{ parameters.danatWebHook2.resourceQuotaStorageGB }}"
+          echo "##vso[task.setvariable variable=BILLING_REFERENCE]${{ parameters.danatWebHook2.billingReference }}"
+          echo "##vso[task.setvariable variable=SOURCE]${{ parameters.danatWebHook2.source }}"
+          echo "##vso[task.setvariable variable=SWC_ID]${{ parameters.danatWebHook2.swcID }}"
+          echo "##vso[task.setvariable variable=DATA_CLASSIFICATION]${{ parameters.danatWebHook2.dataClassification }}"
+          echo "##vso[task.setvariable variable=APP_SUBDOMAIN]${{ parameters.danatWebHook2.appSubdomain }}"
+          echo "##vso[task.setvariable variable=ALLOW_ACCESS_FROM_NS]${{ parameters.danatWebHook2.allowAccessFromNS }}"
+          echo "##vso[task.setvariable variable=REQUESTED_BY]${{ parameters.danatWebHook2.requestedBy }}"
+      # - script: |
+      #     export ACTION="add"
+      #     export SWCI="at73215"
+      #     export SUFFIX="dev1"
+      #     export REGION="westeurope"
+      #     export OP_ENVIRONMENT="dev"
+      #     export RESOURCE_QUOTA_CPU="0.5"
+      #     export RESOURCE_QUOTA_MEMORY_GB="3"
+      #     export RESOURCE_QUOTA_STORAGE_GB="99"
+      #     export BILLING_REFERENCE="AB-BC-ABCDE-ABCDE"
+      #     export SOURCE="GSNOW"
+      #     export SWC_ID="AA98765"
+      #     export DATA_CLASSIFICATION="public"
+      #     export APP_SUBDOMAIN="ob-test"
+      #     export ALLOW_ACCESS_FROM_NS="at98765"
+      #     export REQUESTED_BY="david.gardiner@ubs.com"
+      #     echo "##vso[task.setvariable variable=ACTION]${ACTION}"
+      #     echo "##vso[task.setvariable variable=SWCI]${SWCI}"
+      #     echo "##vso[task.setvariable variable=SUFFIX]${SUFFIX}"
+      #     echo "##vso[task.setvariable variable=REGION]${REGION}"
+      #     echo "##vso[task.setvariable variable=OP_ENVIRONMENT]${OP_ENVIRONMENT}"
+      #     echo "##vso[task.setvariable variable=RESOURCE_QUOTA_CPU]${RESOURCE_QUOTA_CPU}"
+      #     echo "##vso[task.setvariable variable=RESOURCE_QUOTA_MEMORY_GB]${RESOURCE_QUOTA_MEMORY_GB}"
+      #     echo "##vso[task.setvariable variable=RESOURCE_QUOTA_STORAGE_GB]${RESOURCE_QUOTA_STORAGE_GB}"
+      #     echo "##vso[task.setvariable variable=BILLING_REFERENCE]${BILLING_REFERENCE}"
+      #     echo "##vso[task.setvariable variable=SOURCE]${SOURCE}"
+      #     echo "##vso[task.setvariable variable=SWC_ID]${SWC_ID}"
+      #     echo "##vso[task.setvariable variable=DATA_CLASSIFICATION]${DATA_CLASSIFICATION}"
+      #     echo "##vso[task.setvariable variable=APP_SUBDOMAIN]${APP_SUBDOMAIN}"
+      #     echo "##vso[task.setvariable variable=ALLOW_ACCESS_FROM_NS]${ALLOW_ACCESS_FROM_NS}"
+      #     echo "##vso[task.setvariable variable=REQUESTED_BY]${REQUESTED_BY}"
+      # - script: |
+      #     echo "Setting environment variables..."
+      #   env:
+      #     ACTION: ${{ parameters.danatWebHook.action }}
+      #     SWCI: ${{ parameters.danatWebHook.swci }}
+      #     SUFFIX: ${{ parameters.danatWebHook.suffix }}
+      #     REGION: ${{ parameters.danatWebHook.region }}
+      #     OP_ENVIRONMENT: ${{ parameters.danatWebHook.opEnvironment }}
+      #     RESOURCE_QUOTA_CPU: ${{ parameters.danatWebHook.resourceQuotaCPU }}
+      #     RESOURCE_QUOTA_MEMORY_GB: ${{ parameters.danatWebHook.resourceQuotaMemoryGB }}
+      #     RESOURCE_QUOTA_STORAGE_GB: ${{ parameters.danatWebHook.resourceQuotaStorageGB }}
+      #     BILLING_REFERENCE: ${{ parameters.danatWebHook.billingReference }}
+      #     SOURCE: ${{ parameters.danatWebHook.source }}
+      #     SWC_ID: ${{ parameters.danatWebHook.swcID }}
+      #     DATA_CLASSIFICATION: ${{ parameters.danatWebHook.dataClassification }}
+      #     APP_SUBDOMAIN: ${{ parameters.danatWebHook.appSubdomain }}
+      #     ALLOW_ACCESS_FROM_NS: ${{ parameters.danatWebHook.allowAccessFromNS }}
+      #     REQUESTED_BY: ${{ parameters.danatWebHook.requestedBy }}
+
+      - checkout: self
+        persistCredentials: true
+      - script: |
+          # curl -O https://go.dev/dl/go1.22.2.linux-amd64.tar.gz
+          # rm -rf /usr/local/go
+          # tar -C /usr/local -xzf go*.linux-amd64.tar.gz
+          # go get -v -t -d ./...
+          if [ -f Gopkg.toml ]; then
+              curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+              dep ensure
+          fi
+          go version
+          # echo System.DefaultWorkingDirectory is $(System.DefaultWorkingDirectory)
+          # pwd
+          # ls $(System.DefaultWorkingDirectory)
+          # ls $(System.DefaultWorkingDirectory)/createFiles
+        workingDirectory: '$(System.DefaultWorkingDirectory)'
+        displayName: 'Get dependencies, then build'
+      - script: |
+            export System_JobId=$(System.JobId)
+            echo "$System_JobId"
+            git config user.email "$(GitUserName)@foo.com"
+            git config user.name "$(GitUserName)"
+            git branch -va
+            git checkout "$System_JobId"
+            git branch -va
+        displayName: 'Checkout branch'
+        env:
+          GIT_CREDENTIALS: $(gitCredentials)
+      - task: Go@0
+        inputs:
+          command: 'test'
+          arguments: '-v validation_test.go' # Specify the path to your Go file
+          workingDirectory: '$(System.DefaultWorkingDirectory)/validation'
+      - task: Go@0
+        inputs:
+          command: 'run'
+          arguments: '2.1.create_files.go' # Specify the path to your Go file
+          workingDirectory: '$(System.DefaultWorkingDirectory)/createFiles'
+      - task: Go@0
+        inputs:
+          command: 'get'
+          arguments: '-d'
+          workingDirectory: '$(System.DefaultWorkingDirectory)/updateKust'
+      - task: Go@0
+        inputs:
+          command: 'run'
+          arguments: '2.2.updateKust.go' # Specify the path to your Go file
+          workingDirectory: '$(System.DefaultWorkingDirectory)/updateKust'
+      - script: |
+            export Build_SourceBranchName=$(Build.SourceBranchName)
+            echo $Build_SourceBranchName
+            git diff
+            git config user.email "$(GitUserName)@foo.com"
+            git config user.name "$(GitUserName)"
+            if git status | grep -q 'nothing to commit'; then
+              echo "no changes to commit"
+            else
+              echo "change to be added"
+              git add .
+              git commit -m "Update files"
+              git push origin HEAD:$Build_SourceBranchName       
+            fi
+        displayName: 'Commit changes'
+        env:
+          GIT_CREDENTIALS: $(gitCredentials)
+
+  # - stage: RunPowerShellScript
+  #   jobs:
+  #   - job: rbac-onbaording
+  #     steps:
+  #     - script: |
+  #           Write-Host "Hello, World!"
+  #           # ./path/to/your/script.ps1
+  #       pwsh: true
+    

@@ -1,0 +1,11 @@
+namespace: ${swci}
+swci: ${swci}
+opEnvironment: ${opEnvironment}
+action: ${action}
+billingReference: ${billingReference}
+source: ${source}
+requestedBy: ${requestedBy}
+region: ${region}
+swcID: ${swcID}
+uniqueId: ${uniqueId}
+CI_COMMIT_TAG: ${CI_COMMIT_TAG}
