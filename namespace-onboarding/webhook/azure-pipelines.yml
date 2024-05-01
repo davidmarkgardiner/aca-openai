@@ -179,12 +179,24 @@ stages:
         env:
           GIT_CREDENTIALS: $(gitCredentials)
 
-  # - stage: RunPowerShellScript
-  #   jobs:
-  #   - job: rbac-onbaording
-  #     steps:
-  #     - script: |
-  #           Write-Host "Hello, World!"
-  #           # ./path/to/your/script.ps1
-  #       pwsh: true
-    
+- stage: appTest
+  displayName: Application HTTP Test
+  jobs:
+  - job: AppTest
+    steps:
+      - task: Go@0
+        inputs:
+          command: 'run'
+          arguments: 'appTest.go' # Specify the path to your Go file
+          workingDirectory: '$(System.DefaultWorkingDirectory)/appTest'
+
+- stage: RBAC ROLE BINDING
+  displayName: Bind RBAC Roles to Cluster and Namespace
+  jobs:
+  - job: rbacRoleBinding
+    steps:
+      - script: |
+            Write-Host "Hello, World!"
+            # rbacRoleBinding/rbacRoleBinding.ps1
+        pwsh: true
+        workingDirectory: '$(System.DefaultWorkingDirectory)/rbacRoleBinding'
