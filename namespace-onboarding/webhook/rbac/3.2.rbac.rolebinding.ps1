@@ -30,6 +30,7 @@ function MakeApiCall {
     return $response
 }
 
+
 function ProcessEnvVars {
     param(
         $regionData,
@@ -37,6 +38,11 @@ function ProcessEnvVars {
         $apiEndpoint
     )
 
+    $vars = @("ACTION", "SWCI", "SUFFIX", "REGION", "OP_ENVIRONMENT")
+
+    foreach ($v in $vars) {
+        Write-Host "$v: $($env:$v)"
+    }
     $action = $env:ACTION
     $namespace = $env:NAMESPACE
     $suffix = $env:SUFFIX

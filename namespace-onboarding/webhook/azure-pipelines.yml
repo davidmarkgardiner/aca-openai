@@ -196,7 +196,6 @@ stages:
   - job: rbacRoleBinding
     steps:
       - script: |
-            Write-Host "Hello, World!"
-            # rbacRoleBinding/rbacRoleBinding.ps1
+            rbacRoleBinding/rbacRoleBinding.ps1
         pwsh: true
         workingDirectory: '$(System.DefaultWorkingDirectory)/rbacRoleBinding'
