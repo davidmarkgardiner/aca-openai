@@ -30,32 +30,30 @@ function MakeApiCall {
     return $response
 }
 
-
-function ProcessEnvVars {
+function ProcessJsonFile {
     param(
+        $jsonfile,
         $regionData,
         $accessToken,
         $apiEndpoint
     )
 
-    $vars = @("ACTION", "SWCI", "SUFFIX", "REGION", "OP_ENVIRONMENT")
+    $jsonData = Get-Content -Path $jsonfile.FullName -Raw | ConvertFrom-Json
 
-    foreach ($v in $vars) {
-        Write-Host "$v: $($env:$v)"
-    }
-    $action = $env:ACTION
-    $namespace = $env:NAMESPACE
-    $suffix = $env:SUFFIX
-    $region = $env:REGION
-    $swc = $env:SWCI
+    $action = $jsonData.action
+    $namespace = $jsonData.namespace
+    $suffix = $jsonData.suffix
+    $region = $jsonData.region
+
     # Convert the first letter to uppercase and the rest to lowercase
-    $action = $action.Substring(0,1).ToUpper() + $action.Substring(1).ToLower()
-    # Convert $namespace $suffix $region to lowercase
-    $namespace = $namespace.ToLower()
-    $suffix = $suffix.ToLower()
-    $region = $region.ToLower()
-    $swc = $swc.ToLower()
+    $jsonData.action = $jsonData.action.Substring(0,1).ToUpper() + $jsonData.action.Substring(1).ToLower()
+    # Convert $jsonData.namespace $jsonData.suffix $jsonData.region to lowercase
+    $jsonData.namespace = $jsonData.namespace.ToLower()
+    $jsonData.suffix = $jsonData.suffix.ToLower()
+    $jsonData.region = $jsonData.region.ToLower()
     
+
+
     if ($regionData.ContainsKey($region)) {
         $clusterid = $regionData[$region]["clusterid"]
         $sub = $regionData[$region]["sub"]
@@ -93,7 +91,19 @@ function ProcessEnvVars {
 }
 
 # Main script
+$datadir = "data2/"
+$jsonFiles = Get-ChildItem -Path $datadir -Filter "*.json"
+
+if ($jsonFiles.Count -eq 0) {
+    Write-Host "No JSON files found in $datadir"
+    exit 1
+}
+
+# # ... rest of your script ...
+
 # $accessToken = Get-AccessTokenForFunction -scope 
 # $apiEndpoint = https://azurewebsites.net/api/aksnamespaceroleassign
 
-# ProcessEnvVars -regionData $regionData -accessToken $accessToken -apiEndpoint $apiEndpoint
+# foreach ($jsonfile in $jsonFiles) {
+#     ProcessJsonFile -jsonfile $jsonfile -regionData $regionData -accessToken $accessToken -apiEndpoint $apiEndpoint
+# }
