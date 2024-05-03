@@ -190,12 +190,11 @@ stages:
           arguments: 'appTest.go' # Specify the path to your Go file
           workingDirectory: '$(System.DefaultWorkingDirectory)/appTest'
 
-- stage: RBAC ROLE BINDING
+- stage: RBACROLEBINDING
   displayName: Bind RBAC Roles to Cluster and Namespace
   jobs:
   - job: rbacRoleBinding
     steps:
-      - script: |
-            rbacRoleBinding/rbacRoleBinding.ps1
-        pwsh: true
-        workingDirectory: '$(System.DefaultWorkingDirectory)/rbacRoleBinding'
+      - task: PowerShell@2
+        inputs:
+          filePath: 'rbacRoleBinding/rbacRoleBinding.ps1'
