@@ -52,7 +52,7 @@ func main() {
         OpEnvironment: os.Getenv("OP_ENVIRONMENT"),
     }
 
-    filename := fmt.Sprintf("region/%s.env", item.Region)
+    filename := fmt.Sprintf("../region/%s.env", item.Region)
     fileContent, err := os.ReadFile(filename)
     if err != nil {
         log.Fatalf("Error reading file: %v", err)
@@ -72,8 +72,9 @@ func main() {
     }
 
     domain := os.Getenv("domain")
-
-    if strings.HasPrefix(item.Suffix, "ob-test") && (item.Action == "Add") {
+    url := "http://example.com"
+    fmt.Printf("Suffix: %s\n", item.Suffix)
+    if strings.HasPrefix(item.Suffix, "ob-test") && (item.Action == "add") {
         for i := 0; i < 10; i++ {
             url := fmt.Sprintf("https://%s.%s.%s.%s", item.Swci, item.OpEnvironment, item.Suffix, domain)
             log.Printf("checking https Response from URL: %s", url)

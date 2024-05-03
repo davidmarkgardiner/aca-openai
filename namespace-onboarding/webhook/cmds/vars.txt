@@ -1,6 +1,6 @@
 $env:ACTION = "add"
 $env:SWCI = "at65999"
-$env:SUFFIX = "poc1"
+$env:SUFFIX = "ob-test"
 $env:REGION = "westeurope"
 $env:OP_ENVIRONMENT = "dev"
 $env:RESOURCE_QUOTA_CPU = "0.5"
