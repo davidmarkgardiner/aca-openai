@@ -76,20 +76,23 @@ func main() {
     fmt.Printf("Suffix: %s\n", item.Suffix)
     if strings.HasPrefix(item.Suffix, "ob-test") && (item.Action == "add") {
         for i := 0; i < 10; i++ {
-            url := fmt.Sprintf("https://%s.%s.%s.%s", item.Swci, item.OpEnvironment, item.Suffix, domain)
+            url = fmt.Sprintf("https://%s.%s.%s.%s", item.Swci, item.OpEnvironment, item.Suffix, domain)
             log.Printf("checking https Response from URL: %s", url)
             err = checkHttpResponse(url, item)
             if err == nil {
                 break
             }
-
+    
             time.Sleep(30 * time.Second)
         }
-
+    
         if err != nil {
             log.Fatal(err)
         } else {
             log.Printf("App on %s, url up and running", url)
         }
+    } else {
+        fmt.Println("Suffix and Action do not equal 'ob-test*' and 'add' respectively, therefore test has not been run")
     }
 }
+
