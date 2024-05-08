@@ -246,7 +246,8 @@ if match {
 }
 // verify that resourceQuotaCPU is between 0.1 and 8
 func isValidResourceQuotaCPU(resourceQuotaCPU string) bool {
-match, _ := regexp.MatchString(`^(0\.[1-9]|1(\.0)?|[2-8])$`, resourceQuotaCPU)
+// match, _ := regexp.MatchString(`^(0\.[1-9]|1(\.0)?|[2-8])$`, resourceQuotaCPU)
+match, _ := regexp.MatchString(`^(0\.\d{1,3}|1(\.0{1,3})?|[2-8])$`, resourceQuotaCPU)
 if match {
 	fmt.Printf("ResourceQuotaCPU: %s\n", resourceQuotaCPU)
 	return true
