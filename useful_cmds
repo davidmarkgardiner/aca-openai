@@ -33,3 +33,14 @@ for pv in $pvs; do
     echo "Processing PV: $pv"
     # Add your command here
 done
+
+
+The `allowSharedKeyAccess` property in Azure Kubernetes Service (AKS) is related to Azure Storage Service. It's not a direct AKS setting, but it's used when AKS interacts with Azure Storage.
+
+When `allowSharedKeyAccess` is set to `true`, it means that the storage account accepts authorization from Shared Key. Shared Key authorization is a method that clients can use to access Azure Storage services. It uses the account access key to sign the request.
+
+Setting `allowSharedKeyAccess` to `false` disables Shared Key authorization for the storage account. This means that you can't use Shared Key to authorize requests to the storage account. Instead, you would need to use Azure Active Directory (Azure AD) for authorization.
+
+This setting can enhance security by requiring Azure AD for authorization, which supports more advanced features than Shared Key, such as conditional access policies and multi-factor authentication.
+
+However, before you set `allowSharedKeyAccess` to `false`, you should ensure that all clients that access the storage account support Azure AD authorization. If any clients only support Shared Key authorization, they won't be able to access the storage account after you disable Shared Key access.
