@@ -1,0 +1,18 @@
+To configure an Azure Pipeline to run when it receives a payload sent to the specified URL, you can use Azure Pipelines webhooks. However, Azure Pipelines does not natively support triggering a pipeline run directly from a webhook payload sent to the pipeline runs API.
+
+Instead, you can create a service hook in Azure DevOps that listens for a specific event (like a code push or a pull request), and then triggers the pipeline. Here's how you can do it:
+
+1. Go to your Azure DevOps project.
+2. Click on `Project settings` at the bottom left of the page.
+3. Click on `Service Hooks` under `General`.
+4. Click on `+ Create subscription`.
+5. In the `New Service Hook Subscription` page, choose `Web Hooks` from the service list.
+6. Choose the type of trigger you want (like `Code pushed` or `Pull request created`), and then click `Next`.
+7. Configure the trigger details, and then click `Next`.
+8. In the `Action` page, enter the URL of the pipeline runs API in the `URL` field.
+9. Choose `POST` as the `HTTP POST` method.
+10. In the `Resource details to send` section, choose `Send all data`.
+11. Click `Test` to send a test request to the pipeline runs API.
+12. If the test is successful, click `Finish` to create the service hook.
+
+Please note that this will trigger the pipeline whenever the specified event occurs. If you want to trigger the pipeline with a specific payload, you may need to create a custom application that listens for the webhook and triggers the pipeline when it receives the specific payload.
