@@ -1,0 +1,50 @@
+# Mandatory fields
+apiVersion: containerservice.azure.com/v1api20210501
+kind: ManagedCluster
+metadata:
+  name: samplemanagedcluster
+  namespace: default
+spec:
+  location: westeurope
+  owner:
+    name: aso-sample-rg
+  dnsPrefix: aso
+
+  # Networking
+  networkProfile:
+    networkPlugin: azure
+    serviceCidr: 10.0.0.0/16
+    dnsServiceIP: 10.0.0.10
+    dockerBridgeCidr: 172.17.0.1/16
+    loadBalancerSku: Standard
+    outboundType: loadBalancer
+
+  # Security
+  apiServerAccessProfile:
+    enablePrivateCluster: false
+
+  # Agent Pool
+  agentPoolProfiles:
+    - name: pool1
+      count: 1
+      vmSize: Standard_DS2_v2
+      osType: Linux
+      mode: System
+      type: VirtualMachineScaleSets
+      availabilityZones: ["1", "2", "3"]
+
+  # Identity
+  identity:
+    type: SystemAssigned
+
+  # Kubernetes version
+  kubernetesVersion: "1.20.7"
+
+  # Addon Profiles
+  addonProfiles:
+    httpApplicationRouting:
+      enabled: false
+    azurePolicy:
+      enabled: false
+    kubeDashboard:
+      enabled: false

@@ -1,0 +1,49 @@
+# compulsory fields
+apiVersion: containerservice.azure.com/v1api20210501
+kind: ManagedCluster
+metadata:
+  name: samplemanagedcluster
+  namespace: default
+spec:
+  location: westeurope
+  owner:
+    name: aso-sample-rg
+  dnsPrefix: aso
+  agentPoolProfiles:
+    - name: pool1
+      count: 1
+      vmSize: Standard_DS2_v2
+      osType: Linux
+      mode: System
+  identity:
+    type: SystemAssigned
+
+  # Kubernetes version
+  kubernetesVersion: 1.26.6  # This value can be updated based on your requirements
+
+  # Network profile
+  networkProfile:
+    networkPlugin: kubenet  # This value can be updated based on your requirements
+    serviceCidr: 10.251.0.0/17  # Example value
+    dnsServiceIP: 10.251.0.10  # Example value
+    dockerBridgeCidr: 172.17.0.1/16  # Example value
+    loadBalancerSku: standard
+    outboundType: userDefinedRouting  # Example value
+
+  # API server access profile
+  apiServerAccessProfile:
+    enablePrivateCluster: true
+
+  # Addon profiles
+  addonProfiles:
+    omsagent:
+      enabled: true
+      config:
+        logAnalyticsWorkspaceResourceID: /subscriptions/{subscription-id}/resourcegroups/{resource-group}/providers/microsoft.operationalinsights/workspaces/{workspace-id}  # Example value
+    azurepolicy:
+      enabled: true
+    azureKeyvaultSecretsProvider:
+      enabled: true
+      config:
+        enableSecretRotation: true
+        rotationPollInterval: 30m

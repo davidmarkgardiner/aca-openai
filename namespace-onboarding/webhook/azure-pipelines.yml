@@ -159,8 +159,8 @@ stages:
       - task: Go@0
         inputs:
           command: 'run'
-          arguments: '2.2.updateKust.go' # Specify the path to your Go file
-          workingDirectory: '$(System.DefaultWorkingDirectory)/updateKust'
+          arguments: 'updateKust/2.2.updateKust.go' # Specify the path to your Go file
+          workingDirectory: '$(System.DefaultWorkingDirectory)'
       - script: |
             export Build_SourceBranchName=$(Build.SourceBranchName)
             echo $Build_SourceBranchName
