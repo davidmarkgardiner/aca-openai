@@ -1,0 +1,294 @@
+# Compulsory fields
+apiVersion: containerservice.azure.com/v1api20231102preview
+kind: ManagedCluster
+metadata:
+  name: clusterte03
+  namespace: default
+spec:
+  location: westeurope
+  owner:
+    name: aso-sample-rg
+  dnsPrefix: clusterte03k8s
+  agentPoolProfiles:
+    - name: sysnpl1
+      count: 1
+      maxCount: 6
+      minCount: 1
+      enableAutoScaling: true
+      availabilityZones:
+        - "1"
+        - "2"
+        - "3"
+      vmSize: Standard_DS2_v2
+      osDiskSizeGB: 0
+      osDiskType: Managed
+      maxPods: 110
+      type: VirtualMachineScaleSets
+      mode: System
+      # nodeTaints:
+      #   - key: "criticalAddonsOnly"
+      #     value: "true"
+      #     effect: "NoSchedule"
+      osType: Linux
+      enableCustomCATrust: true  # Enabling custom CA trust
+    - name: usrnpl1
+      count: 1
+      maxCount: 6
+      minCount: 1
+      enableAutoScaling: true
+      availabilityZones:
+        - "1"
+        - "2"
+        - "3"
+      vmSize: Standard_DS2_v2
+      osDiskSizeGB: 0
+      osDiskType: Managed
+      enableCustomCATrust: true
+      maxPods: 110
+      type: VirtualMachineScaleSets
+      mode: User
+      osType: Linux
+      enableCustomCATrust: true  # Enabling custom CA trust
+  # agentPoolProfiles:
+  #   - name: sysnpl1
+  #     count: 1
+  #     maxCount: 6
+  #     minCount: 1
+  #     enableAutoScaling: true
+  #     availabilityZones:
+  #       - 1
+  #       - 2
+  #       - 3
+  #     # enableCustomCATrust: true
+  #     vmSize: Standard_DS2_v2
+  #     osDiskSizeGB: 0
+  #     osDiskType: Managed
+  #     vnetSubnetID: ""
+  #     maxPods: 110
+  #     type: VirtualMachineScaleSets
+  #     mode: System
+  #     orchestratorVersion: 1.29
+  #     # nodeTaints:
+  #     #   - "key=criticalAddonsOnly,value=true,effect=NoSchedule"
+  #     nodeTaints:
+  #       - key: "criticalAddonsOnly"
+  #         value: "true"
+  #         effect: "NoSchedule"
+  #     osType: Linux
+  #     osSKU: AzureLinux
+  #   - name: usrnpl1
+  #     count: 1
+  #     maxCount: 6
+  #     minCount: 1
+  #     enableAutoScaling: true
+  #     availabilityZones:
+  #       - 1
+  #       - 2
+  #       - 3
+  #     # enableCustomCATrust: true
+  #     vmSize: Standard_DS2_v2
+  #     osDiskSizeGB: 0
+  #     osDiskType: Managed
+  #     vnetSubnetID: ""
+  #     maxPods: 110
+  #     type: VirtualMachineScaleSets
+  #     mode: User
+  #     orchestratorVersion: 1.29
+  #     osType: Linux
+  #     osSKU: AzureLinux
+  # identity:
+  #   type: SystemAssigned
+
+# Optional fields from the ARM template
+  # properties:
+  # ARM:
+
+  # # aad profile
+  #   AADProfile:
+  #     managed: true
+  #     adminGroupObjectIDs:
+  #     - 00000000-0000-0000-0000-000000000000
+  #     tenantID: 00000000-0000-0000-0000-000000000000
+  #     enableAzureRBAC: true
+
+  #   # disk encryption set profile
+  # ManagedCluster_Spec_ARM:
+  #     diskEncryptionSetID:
+  #       id: /subscriptions/your-subscription-id/resourceGroups/your-resource-group/providers/Microsoft.Compute/diskEncryptionSets/your-disk-encryption-set
+  #   # auto upgrade profile
+  autoUpgradeProfile:
+    upgradeChannel: patch
+    nodeOSUpgradeChannel: NodeImage
+
+  # API server access profile
+  apiServerAccessProfile:
+    enablePrivateCluster: true
+    enablePrivateClusterPublicFQDN: true
+    privateDNSZone: none
+
+  # # Kubernetes version
+  # kubernetesVersion: 1.29
+
+  # SSH configuration
+  linuxProfile:
+    adminUsername: localadmin
+    ssh:
+      publicKeys:
+        - keyData: <your-ssh-public-key>
+
+  # # UptimeSlaTeir
+  # uptimeSlaTier: Standard
+
+
+  # # Security profile
+  # securityProfile:
+  #   defender:
+  #     logAnalyticsWorkspaceResourceId: /subscriptions/your-subscription-id/resourceGroups/your-resource-group/providers/Microsoft.OperationalInsights/workspaces/your-loganalytics-workspace
+  #     securityMonitoring:
+  #       enabled: true
+  #   workloadIdentity:
+  #     enabled: true
+
+  # Service principal profile
+  servicePrincipalProfile:
+    clientId: msi
+
+  # serviceMeshProfile
+  serviceMeshProfile:
+    istio:
+      components:
+        ingressGateways:
+          - enabled: true
+            mode: Internal
+      revisions: ["asm-1-19"]
+    mode: Istio
+
+  # Storage profile
+  storageProfile:
+    blobCSIDriver:
+      enabled: false
+    diskCSIDriver:
+      enabled: true
+    fileCSIDriver:
+      enabled: true
+    snapshotController:
+      enabled: false
+
+  # Workload auto scaler profile
+  workloadAutoScalerProfile:
+    keda:
+      enabled: true
+
+  # # Addon profiles
+  # addonProfiles:
+  #   omsagent:
+  #     enabled: true
+  #     config:
+  #       logAnalyticsWorkspaceResourceID: /subscriptions/your-subscription-id/resourceGroups/your-resource-group/providers/Microsoft.OperationalInsights/workspaces/your-loganalytics-workspace
+  #   azurepolicy:
+  #     enabled: true
+  #     config:
+  #       version: v2
+  #   azureKeyvaultSecretsProvider:
+  #     enabled: true
+  #     config:
+  #       enableSecretRotation: true
+  #       rotationPollInterval: 30m
+
+  # OIDC issuer profile
+  oidcIssuerProfile:
+    enabled: false
+
+  # Pod identity profile
+  podIdentityProfile:
+    enabled: false
+    allowNetworkPluginKubenet: true
+    userAssignedIdentityExceptions:
+      - name: k8s-control-plane-exception
+        namespace: kube-system
+        podLabels: 
+          app: kube-apiserver
+      - name: ubs-control-plane-exception
+        namespace: ubs-system
+        podLabels: 
+          app: kube-apiserver
+
+  # Node resource group
+  nodeResourceGroup: MC_sample-rg_sample-cluster_westeurope
+
+  # Metrics profile
+  metricsProfile:
+    costAnalysis:
+      enabled: true
+
+  # Azure monitor profile
+  azureMonitorProfile:
+    metrics:
+      enabled: false
+
+  # enbalePodSecurityPolicy
+  enablePodSecurityPolicy: false
+
+  # enableRbac
+  enableRBAC: true
+
+  # Network profile
+  networkProfile:
+    # advancedNetworking:
+    # observability:
+    #   enabled: true
+    networkPlugin: azure
+    networkPluginMode: overlay
+    networkDataplane: cilium
+    networkPolicy: cilium
+    loadBalancerSku: standard
+    podCidr: 10.251.128.0/17
+    serviceCidr: 10.251.0.0/17
+    dnsServiceIP: 10.251.0.10
+    outboundType: userDefinedRouting
+    monitoring:
+      enabled: true
+
+
+  # # Identity profile
+  # identityProfile:
+  #   kubeletidentity:
+  #     resourceId: /subscriptions/your-subscription-id/resourceGroups/your-resource-group/providers/Microsoft.ManagedIdentity/userAssignedIdentities/your-identity
+  #     clientId: your-client-id
+  #     objectId: your-object-id
+
+  # # Identity
+  # identity:
+  #   type: UserAssigned
+  #   userAssignedIdentities:
+  #     your-identity: {}
+
+  # SKU
+  sku:
+    name: Base
+    tier: Standard
+# ---
+# apiVersion: keyvault.azure.com/v1api20210401preview
+# kind: Vault
+# metadata:
+#   name: nestedTemplate
+#   namespace: default
+# spec:
+#   location: westeurpoe # replace with the actual location
+#   resourceGroup: CsiKeyVaultRg
+#   properties:
+#     accessPolicies:
+#       - tenantId: <tenantId> # replace with the actual tenantId
+#         objectId: <objectId> # replace with the actual objectId
+#         permissions:
+#           keys: <keysPermissions> # replace with the actual permissions
+#           secrets: <secretsPermissions> # replace with the actual permissions
+#           certificates: <certificatePermissions> # replace with the actual permissions
+---
+apiVersion: resources.azure.com/v1api20200601
+kind: ResourceGroup
+metadata:
+  name: aso-sample-rg
+  namespace: default
+spec:
+  location: westcentralus

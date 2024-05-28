@@ -1,0 +1,16 @@
+apiVersion: network.azure.com/v1api20201101
+kind: VirtualNetwork
+metadata:
+  name: my-vnet
+  namespace: default
+spec:
+  location: westus
+  resourceGroup: my-resource-group
+  properties:
+    addressSpace:
+      addressPrefixes:
+        - 10.0.0.0/16
+    subnets:
+      - name: my-subnet
+        properties:
+          addressPrefix: 10.0.0.0/24

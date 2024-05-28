@@ -1,0 +1,30 @@
+---
+apiVersion: network.azure.com/v1api20201101
+kind: VirtualNetwork
+metadata:
+  creationTimestamp: null
+  name: aks-vnet-37539061
+spec:
+  addressSpace:
+    addressPrefixes:
+    - 10.224.0.0/12
+  azureName: aks-vnet-37539061
+  enableDdosProtection: false
+  location: uksouth
+---
+apiVersion: network.azure.com/v1api20201101
+kind: VirtualNetworksSubnet
+metadata:
+  creationTimestamp: null
+  name: aks-vnet-37539061-aks-subnet
+spec:
+  addressPrefix: 10.224.0.0/16
+  azureName: aks-subnet
+  networkSecurityGroup:
+    reference:
+      armId: /subscriptions/133d5755-4074-4d6e-ad38-eb2a6ad12903/resourceGroups/MC_aks_danat-aks_uksouth/providers/Microsoft.Network/networkSecurityGroups/aks-agentpool-37539061-nsg
+  owner:
+    name: aks-vnet-37539061
+  privateEndpointNetworkPolicies: Disabled
+  privateLinkServiceNetworkPolicies: Enabled
+---

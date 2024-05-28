@@ -1,0 +1,89 @@
+asoctl import azure-resource /subscriptions/[redacted]/resourceGroups/aso-rg/providers/Microsoft.DBforPostgreSQL/flexibleServers/aso-pg --output aso.yaml
+
+asoctl import azure-resource /subscriptions/133d5755-4074-4d6e-ad38-eb2a6ad12903/resourceGroups/azwi-quickstart-f2ac/providers/Microsoft.KeyVault/vaults/azwi-kv-e5d0 --output -asokv.yml
+asoctl import azure-resource /subscriptions/133d5755-4074-4d6e-ad38-eb2a6ad12903/resourceGroups/azwi-quickstart-f2ac/providers/Microsoft.KeyVault/vaults/azwi-kv-e5d0 --output -asokv.yml
+
+asoctl import azure-resource /subscriptions/133d5755-4074-4d6e-ad38-eb2a6ad12903/resourcegroups/aks/providers/Microsoft.ContainerService/managedClusters/danat-aks --output asoaks.yml
+asoctl import azure-resource /subscriptions/133d5755-4074-4d6e-ad38-eb2a6ad12903/resourcegroups/danat-aks/providers/Microsoft.ContainerService/managedClusters/danat-aks --output asoaks2.yml
+asoctl import azure-resource /subscriptions/133d5755-4074-4d6e-ad38-eb2a6ad12903/resourcegroups/danat-aks/providers/Microsoft.ContainerService/managedClusters/danat-aks --output asoaks27-5.yml
+asoctl import azure-resource /subscriptions/133d5755-4074-4d6e-ad38-eb2a6ad12903/resourcegroups/aks/providers/microsoft.monitor/accounts/defaultazuremonitorworkspace-suk --output aso-azmonworkspace.yml
+
+asoctl import azure-resource /subscriptions/133d5755-4074-4d6e-ad38-eb2a6ad12903/resourceGroups/danat-aks/providers/Microsoft.Compute/diskEncryptionSets/danat-des --output aso-des.yml
+asoctl import azure-resource /subscriptions/133d5755-4074-4d6e-ad38-eb2a6ad12903/resourceGroups/MC_aks_danat-aks_uksouth/providers/Microsoft.Network/virtualNetworks/aks-vnet-37539061 --output aso-aks-vnet.yml
+"serviceMeshProfile": {
+  "mode": "[parameters('serviceMeshMode')]",
+  "istio": {
+    "revision": "[parameters('istioRevision')]",  // Add this line
+    "components": {
+      "ingressGateways": [
+        {
+          "enabled": "[parameters('istioInternalIngressGateway')]",
+          "mode": "Internal"
+        },
+        {
+          "enabled": "[parameters('istioExternalIngressGateway')]",
+          "mode": "External"
+        }
+      ]
+    }
+  }
+}
+
+az aks update \
+    --resource-group danat-aks \
+    --name danat-aks \
+    --enable-managed-identity \
+    --assign-identity /subscriptions/133d5755-4074-4d6e-ad38-eb2a6ad12903/resourcegroups/azwi-quickstart-f2ac/providers/Microsoft.ManagedIdentity/userAssignedIdentities/workload-identity-uami
+
+
+## to add
+ #   # disk encryption set profile
+  # ManagedCluster_Spec_ARM:
+  #     diskEncryptionSetID:
+  #       id: /subscriptions/your-subscription-id/resourceGroups/your-resource-group/providers/Microsoft.Compute/diskEncryptionSets/your-disk-encryption-set
+
+---
+
+    # # UptimeSlaTeir
+  # uptimeSlaTier: Standard
+
+    # # Security profile
+  # securityProfile:
+  #   defender:
+  
+  securityMonitoring
+  enableAutoScaling
+  vnetSubnetID
+  clusterSshPublicKey
+  ebpfDataplane
+  workloadIdentity
+  CsiKeyVaultName
+  CsiKeyVaultName
+  keysPermissions
+  servicePrincipalProfile # msi
+  keda
+  metricsProfile # costAnalysis
+  azureMonitorProfile
+  advancedNetworking # observability
+
+--enable-azure-monitor-metrics 
+ --enable-cost-analysis # needs standard sku
+<<<<<<< HEAD
+az aks update -n danat-aks -g danat-aks --enable-image-cleaner 
+--enable-workload-identity 
+--enable-defender # done
+--enable-keda # done
+=======
+az aks update -n danat-aks -g danat-aks --enable-workload-identity 
+--enable-defender --enable-image-cleaner --enable-keda --enable-workload-identity 
+
+>>>>>>> d43cc570485536db430e4c00b137905960d64e01
+az extension add --name aks-preview
+az extension update --name aks-preview
+
+az account set --subscription 133d5755-4074-4d6e-ad38-eb2a6ad12903
+az aks get-credentials --resource-group danat-aks --name danat-aks --overwrite-existing 
+kubelogin convert-kubeconfig -l azurecli
+
+source .env
+envsubst < aso-aks-template.yml > aso-aks-template-substituted.ymla

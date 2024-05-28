@@ -1,0 +1,968 @@
+
+None selected 
+
+Skip to content
+Using Gmail with screen readers
+arm 
+4 of many
+arm
+Inbox
+
+Gardiner, David-XT
+Attachments
+23 May 2024, 09:30 (3 days ago)
+to me
+
+{
+
+                "$schema": https://schema.management.azure.com/schemas/2019-08-01/deploymentTemplate.json#,
+
+                "contentVersion": "1.0.0.0",
+
+                "parameters": {
+
+                                "clusterNameSuffix": {
+
+                                                "type": "string",
+
+                                                "minLength": 1,
+
+                                                "maxLength": 5
+
+                                },
+
+                                "diskEncryptionSetID": {
+
+                                                "type": "string",
+
+                                                "metadata": {
+
+                                                                "description": "The resource ID of the disk encryption set used to encrypt the OS disks of the nodes."
+
+                                                }
+
+                                },
+
+                                "upgradeChannel": {
+
+            "type": "string",
+
+                                                "allowedValues": ["patch"],
+
+            "defaultValue": "patch",
+
+            "metadata": {
+
+                "description": "For more information see https://learn.microsoft.com/en-us/azure/aks/upgrade-cluster#set-auto-upgrade-channel."
+
+            }
+
+        },
+
+        "nodeOSUpgradeChannel": {
+
+            "type": "string",
+
+                                                "allowedValues": ["NodeImage"],
+
+            "defaultValue": "NodeImage",
+
+            "metadata": {
+
+                "description": "Manner in which the OS on your nodes is updated. The default is NodeImage."
+
+            }
+
+        },
+
+                                "clusterPoolProfile": {
+
+                                                "type": "array",
+
+                                                "defaultValue": [
+
+                                                                {
+
+                                                                                "name": "sysnpl1",
+
+                                                                                "count": 1,
+
+                                                                                "maxCount": 6,
+
+                                                                                "minCount": 1,
+
+                                                                                "enableAutoScaling": true,
+
+                                                                                "availabilityZones": [ "1", "2", "3" ],
+
+                                                                                "enableCustomCATrust": true,
+
+                                                                                "vmSize": "",
+
+                                                                                "osDiskSizeGB": 0,
+
+                                                                                "osDiskType": "Managed",
+
+                                                                                "vnetSubnetID": "",
+
+                                                                                "maxPods": 110,
+
+                                                                                "type": "VirtualMachineScaleSets",
+
+                                                                                "mode": "System",
+
+                                                                                "orchestratorVersion": "1.25.6",
+
+                                                                                "nodeTaints": [
+
+                                                                                                "CriticalAddonsOnly=true:NoSchedule"
+
+                                                                                ],
+
+                                                                                "osType": "Linux",
+
+                                                                                "osSKU": "AzureLinux"
+
+                                                                },
+
+                                                                {
+
+                                                                                "name": "usrnpl1",
+
+                                                                                "count": 1,
+
+                                                                                "maxCount": 6,
+
+                                                                                "minCount": 1,
+
+                                                                                "enableAutoScaling": true,
+
+                                                                                "availabilityZones": [ "1", "2", "3" ],
+
+                                                                                "enableCustomCATrust": true,
+
+                                                                                "vmSize": "",
+
+                                                                                "osDiskSizeGB": 0,
+
+                                                                                "osDiskType": "Managed",
+
+                                                                                "vnetSubnetID": "",
+
+                                                                                "maxPods": 110,
+
+                                                                                "type": "VirtualMachineScaleSets",
+
+                                                                                "mode": "User",
+
+                                                                                "orchestratorVersion": "1.25.6",
+
+                                                                                "osType": "Linux",
+
+                                                                                "osSKU": "AzureLinux"
+
+                                                                }
+
+                                                ]
+
+                                },
+
+                                "clusterSshPublicKey": {
+
+                                                "type": "securestring"
+
+                                },
+
+                                "uptimeSlaTier": {
+
+                                                "type": "string",
+
+                                                "defaultValue": "Standard",
+
+                                                "allowedValues": [
+
+                                                                "Free",
+
+                                                                "Standard"
+
+                                                ]
+
+                                },
+
+                                "clusterServiceCidr": {
+
+                                                "type": "string",
+
+                                                "defaultValue": "10.251.0.0/17"
+
+                                },
+
+                                "dnsServiceIP": {
+
+                                                "type": "string",
+
+                                                "defaultValue": "10.251.0.10"
+
+                                },
+
+                                "controlPlaneUami": {
+
+                                                "type": "object",
+
+                                                "metadata": {
+
+                                                                "description": "The user assigned managed identity used by AKS control plane."
+
+                                                }
+
+                                },
+
+                                "runtimeUami": {
+
+                                                "type": "object",
+
+                                                "metadata": {
+
+                                                                "description": "The user assigned managed identity used by AKS data plane."
+
+                                                }
+
+                                },
+
+                                "aadAdminGroupObjectID": {
+
+                                                "type": "string",
+
+                                                "metadata": {
+
+                                                                "value": "The Administrator Group for managing AKS cluster."
+
+                                                },
+
+                                                "allowedValues": [
+
+                                                                "80f7067f-5b5b-4e80-84ae-af0d59b4e439",
+
+                                                                "ceb50643-53f5-4774-b2b2-39af2eb28d99",
+
+                                                                "9f3ca856-4c41-4bca-8d69-8175bab9104b"
+
+                                                ]
+
+                                },
+
+                                "kubernetesVersion": {
+
+                                                "type": "string",
+
+                                                "defaultValue": "1.26.6"
+
+                                },
+
+                                "networkPlugin": {
+
+                                                "type": "string",
+
+                                                "defaultValue": "kubenet",
+
+                                                "metadata": {
+
+                                                                "value": "AKS cluster network plugin - `kubenet` (BASIC) networking or `azure` (ADVANCED) networking"
+
+                                                },
+
+                                                "allowedValues": [
+
+                                                                "kubenet",
+
+                                                                "azure",
+
+                                                                "none"
+
+                                                ]
+
+                                },
+
+                                "networkPluginMode": {
+
+                                                "type": "string",
+
+                                                "metadata": {
+
+                                                                "value": "Network plugin mode used for building the Kubernetes network only (overlay) CNI Overlay"
+
+                                                },
+
+                                                "allowedValues": [
+
+                                                                "Overlay",
+
+                                                                "overlay",
+
+                                                                "none"
+
+                                                ],
+
+                                                "defaultValue": "none"
+
+                                },
+
+                                "networkPolicy": {
+
+                                                "type": "string",
+
+                                                "metadata": {
+
+                                                                "value": "Do not set Network policy because it is automatically triggered by ebpfDataplane = cilium."
+
+                                                },
+
+                                                "allowedValues": [
+
+                                                                "azure",
+
+                                                                "none",
+
+                                                                "cilium"
+
+                                                ],
+
+                                                "defaultValue": "none"
+
+                                },
+
+                                "ebpfDataplane": {
+
+                                                "type": "string",
+
+                                                "metadata": {
+
+                                                                "value": "ebpfDataplane is used when we need the deploy a cilium pluging"
+
+                                                },
+
+                                                "defaultValue": "cilium"
+
+                                },
+
+                                "podCidr": {
+
+                                                "type": "string",
+
+                                                "metadata": {
+
+                                                                "value": "Only required when using kubenet (BASIC) networking, ignored for Azure (ADVANCED) networking"
+
+                                                },
+
+                                                "defaultValue": "10.251.128.0/17"
+
+                                },
+
+                                "logAnalyticsWorkspaceID": {
+
+                                                "type": "string",
+
+                                                "allowedValues": [
+
+                                                                "/subscriptions/40e18af6-198a-44df-9ef3-1a7de3cdc475/resourceGroups/operations-eu/providers/Microsoft.OperationalInsights/workspaces/mgmt-global-loganalytics-eu",
+
+                                                                "/subscriptions/40e18af6-198a-44df-9ef3-1a7de3cdc475/resourceGroups/operations-us/providers/Microsoft.OperationalInsights/workspaces/mgmt-global-loganalytics-us",
+
+                                                                "/subscriptions/40e18af6-198a-44df-9ef3-1a7de3cdc475/resourceGroups/operations-apac/providers/Microsoft.OperationalInsights/workspaces/mgmt-global-loganalytics-apac",
+
+                                                                "/subscriptions/49c40c73-dd91-4c7d-b129-969d5b45a5ca/resourcegroups/operations-che/providers/microsoft.operationalinsights/workspaces/mgmt-global-loganalytics-che",
+
+                                                                "/subscriptions/40e18af6-198a-44df-9ef3-1a7de3cdc475/resourcegroups/operations-us/providers/microsoft.operationalinsights/workspaces/mgmt-global-la-nonprod-us",
+
+                                                                "/subscriptions/40e18af6-198a-44df-9ef3-1a7de3cdc475/resourcegroups/operations-eu/providers/microsoft.operationalinsights/workspaces/mgmt-global-la-nonprod-eu",
+
+                                                                "/subscriptions/40e18af6-198a-44df-9ef3-1a7de3cdc475/resourcegroups/operations-apac/providers/microsoft.operationalinsights/workspaces/mgmt-global-la-nonprod-apac",
+
+                                                                "/subscriptions/49c40c73-dd91-4c7d-b129-969d5b45a5ca/resourcegroups/operations-che/providers/microsoft.operationalinsights/workspaces/mgmt-global-la-nonprod-che",
+
+                                                                "/subscriptions/832d2ee6-742b-4789-a57e-00bf5013fdc0/resourceGroups/operations-eu/providers/Microsoft.OperationalInsights/workspaces/c-loganalytics-eu",
+
+                                                                "/subscriptions/094db9df-e445-40ca-a73a-bc45a326f674/resourcegroups/operations-che/providers/microsoft.operationalinsights/workspaces/c-loganalytics-ch"
+
+                                                ]
+
+                                },
+
+                                "logAnalyticsWorkspaceIDDefender": {
+
+                                                "type": "string",
+
+                                                "allowedValues": [
+
+                                                                "/subscriptions/40e18af6-198a-44df-9ef3-1a7de3cdc475/resourceGroups/operations-eu/providers/Microsoft.OperationalInsights/workspaces/mgmt-global-loganalytics-eu",
+
+                                                                "/subscriptions/832d2ee6-742b-4789-a57e-00bf5013fdc0/resourceGroups/operations-eu/providers/Microsoft.OperationalInsights/workspaces/c-loganalytics-eu"
+
+                                                ]
+
+                                },
+
+                                "outboundType": {
+
+                                                "type": "string",
+
+                                                "defaultValue": "userDefinedRouting"
+
+                                },
+
+                                "azureKeyvaultSecretsProvider": {
+
+                                                "type": "object",
+
+                                                "defaultValue": {
+
+                                                                "enabled": true,
+
+                                                                "config": {
+
+                                                                                "enableSecretRotation": "true",
+
+                                                                                "rotationPollInterval": "30m"
+
+                                                                }
+
+                                                },
+
+                                                "metadata": {
+
+                                                                "description": "Enbales Key Vault Provider for Secret Store CSI Driver in AKS"
+
+                                                }
+
+                                },
+
+                                "oidcIssuerProfile": {
+
+                                                "type": "bool",
+
+                                                "defaultValue": false,
+
+                                                "metadata": {
+
+                                                                "description": "Enables the OIDC issuer in AKS"
+
+                                                }
+
+                                },
+
+                                "serviceMeshProfile": {
+
+                                                "type": "object",
+
+                                                "defaultValue": {
+
+                                                                "istio": {
+
+                                                                                "components": {
+
+                                                                                                "ingressGateways": [
+
+                                                                                                                {
+
+                                                                                                                                "enabled": true,
+
+                                                                                                                                "mode": "Internal"
+
+                                                                                                                }
+
+                                                                                                ]
+
+                                                                                },
+
+                                                                                "revisions": ["asm-1-17"]
+
+                                                                },
+
+                                                                "mode": "Istio"
+
+                                                }
+
+                                },
+
+                                "securityProfile": {
+
+                                                "type": "object",
+
+                                                "defaultValue": {
+
+                                                                "workloadIdentity": {
+
+                                                                                "enabled": true
+
+                                                                }
+
+                                                },
+
+                                                "metadata": {
+
+                                                                "description": "Enable Workload Iendtity."
+
+                                                }
+
+                                },
+
+                                "CsiKeyVaultName": {
+
+                                                "type": "string",
+
+                                                "defaultValue": "yourkeyvaultname",
+
+                                                "metadata": {
+
+                                                                "description": "Specifies the Key Vault Name for CSI Secrets."
+
+                                                }
+
+                                },
+
+                                "CsiKeyVaultRg": {
+
+                                                "type": "string",
+
+                                                "defaultValue": "yourkeyvaultresourcegroupname",
+
+                                                "metadata": {
+
+                                                                "description": "Specifies the Key Vault Name for CSI Secrets."
+
+                                                }
+
+                                },
+
+                                "keysPermissions": {
+
+                                                "type": "array",
+
+                                                "defaultValue": [
+
+                                                                "get"
+
+                                                ],
+
+                                                "metadata": {
+
+                                                                "description": "Specifies the permissions to keys in the vault. Valid values are: all, encrypt, decrypt, wrapKey, unwrapKey, sign, verify, get, list, create, update, import, delete, backup, restore, recover, and purge."
+
+                                                }
+
+                                },
+
+                                "secretsPermissions": {
+
+                                                "type": "array",
+
+                                                "defaultValue": [
+
+                                                                "get"
+
+                                                ],
+
+                                                "metadata": {
+
+                                                                "description": "Specifies the permissions to secrets in the vault. Valid values are: all, get, list, set, delete, backup, restore, recover, and purge."
+
+                                                }
+
+                                },
+
+                                "certificatePermissions": {
+
+                                                "type": "array",
+
+                                                "defaultValue": [
+
+                                                                "get"
+
+                                                ],
+
+                                                "metadata": {
+
+                                                                "description": "Specifies the permissions to certificates in the vault. Valid values are: all,  create, delete, update, deleteissuers, get, getissuers, import, list, listissuers, managecontacts, manageissuers,  recover, backup, restore, setissuers, and purge."
+
+                                                }
+
+                                }
+
+                },
+
+                "variables": {
+
+                                "clusterName": "[tolower(concat('K', substring(resourcegroup().tags['opEnvironment'],0,1), substring(subscription().subscriptionid,0,4),substring(resourcegroup().tags['cmdbReference'],2,add(length(resourcegroup().tags['cmdbReference']),-2)),parameters('clusterNameSuffix')))]"
+
+                },
+
+                "resources": [
+
+                                {
+
+                                                "type": "Microsoft.ContainerService/managedClusters",
+
+                                                "apiVersion": "2024-03-02-preview",
+
+                                                "name": "[variables('clusterName')]",
+
+                                                "location": "[resourceGroup().location]",
+
+                                                "properties": {
+
+                                                                "aadProfile": {
+
+                                                                                "managed": true,
+
+                                                                                "adminGroupObjectIDs": "[array(parameters('aadAdminGroupObjectID'))]",
+
+                                                                                "tenantID": "[subscription().tenantID]",
+
+                                                                                "enableAzureRBAC": true
+
+                                                                },
+
+                                                                "diskEncryptionSetID": "[parameters('diskEncryptionSetID')]",
+
+                                                                "autoUpgradeProfile": {
+
+                    "upgradeChannel": "[parameters('upgradeChannel')]",
+
+                    "nodeOSUpgradeChannel": "[parameters('nodeOSUpgradeChannel')]"
+
+                },
+
+                                                                "apiServerAccessProfile": {
+
+                                                                                "enablePrivateCluster": true,
+
+                                                                                "enablePrivateClusterPublicFQDN": true,
+
+                                                                                "privateDNSZone": "none"
+
+                                                                },
+
+                                                                "kubernetesVersion": "[parameters('kubernetesVersion')]",
+
+                                                                "dnsPrefix": "[concat(variables('clusterName'),'k8s')]",
+
+                                                                "agentPoolProfiles": "[parameters('clusterPoolProfile')]",
+
+                                                                "linuxProfile": {
+
+                                                                                "adminUsername": "localadmin",
+
+                                                                                "ssh": {
+
+                                                                                                "publicKeys": [
+
+                                                                                                                {
+
+                                                                                                                                "keyData": "[parameters('clusterSshPublicKey')]"
+
+                                                                                                                }
+
+                                                                                                ]
+
+                                                                                }
+
+                                                                },
+
+                                                                "securityProfile": {
+
+                                                                                "defender": {
+
+                                                                                                "logAnalyticsWorkspaceResourceId": "[parameters('logAnalyticsWorkspaceIDDefender')]",
+
+                                                                                                "securityMonitoring": {
+
+                                                                                                                "enabled": true
+
+                                                                                                }
+
+                                                                                },
+
+                                                                                "workloadIdentity": "[parameters('securityProfile').workloadIdentity]"
+
+                                                                },
+
+                                                                "servicePrincipalProfile": {
+
+                                                                                "clientId": "msi"
+
+                                                                },
+
+                                                                "serviceMeshProfile": "[parameters('serviceMeshProfile')]",
+
+                                                                "storageProfile": {
+
+                                                                                "blobCSIDriver": {
+
+                                                                                                "enabled": false
+
+                                                                                },
+
+                                                                                "diskCSIDriver": {
+
+                                                                                                "enabled": true
+
+                                                                                },
+
+                                                                                "fileCSIDriver": {
+
+                                                                                                "enabled": true
+
+                                                                                },
+
+                                                                                "snapshotController": {
+
+                                                                                                "enabled": false
+
+                                                                                }
+
+                                                                },
+
+                                                                "workloadAutoScalerProfile": {
+
+                                                                                "keda": {
+
+                                                                                                "enabled": true
+
+                                                                                }
+
+                                                                },
+
+                                                                "addonProfiles": {
+
+                                                                                "omsagent": {
+
+                                                                                                "enabled": true,
+
+                                                                                                "config": {
+
+                                                                                                                "logAnalyticsWorkspaceResourceID": "[parameters('logAnalyticsWorkspaceID')]"
+
+                                                                                                }
+
+                                                                                },
+
+                                                                                "azurepolicy": {
+
+                                                                                                "enabled": true,
+
+                                                                                                "config": {
+
+                                                                                                                "version": "v2"
+
+                                                                                                }
+
+                                                                                },
+
+                                                                                "azureKeyvaultSecretsProvider": "[parameters('azureKeyvaultSecretsProvider')]"
+
+                                                                },
+
+                                                                "oidcIssuerProfile": {
+
+                                                                                "enabled": "[parameters('oidcIssuerProfile')]"
+
+                                                                },
+
+                                                                "podIdentityProfile": {
+
+                                                                                "enabled": false,
+
+                                                                                "allowNetworkPluginKubenet": true,
+
+                                                                                "userAssignedIdentityExceptions": [
+
+                                                                                                {
+
+                                                                                                                "name": "k8s-control-plane-exception",
+
+                                                                                                                "namespace": "kube-system",
+
+                                                                                                                "podLabels": {
+
+ 
+
+                                                                                                                }
+
+                                                                                                },
+
+                                                                                                {
+
+                                                                                                                "name": "ubs-control-plane-exception",
+
+                                                                                                                "namespace": "ubs-system",
+
+                                                                                                                "podLabels": {
+
+ 
+
+                                                                                                                }
+
+                                                                                                }
+
+                                                                                ]
+
+                                                                },
+
+                                                                "nodeResourceGroup": "[concat('MC_',resourceGroup().name,'_', variables('clusterName'),'_',resourceGroup().location)]",
+
+                                                                "metricsProfile": {
+
+                                                                                "costAnalysis": {
+
+                                                                                                "enabled": true
+
+                                                                                }
+
+                                                                },
+
+                                                                "azureMonitorProfile": {
+
+                    "metrics": {
+
+                        "enabled": false
+
+                    }
+
+                },
+
+                                                                "enablePodSecurityPolicy": false,
+
+                                                                "enableRBAC": true,
+
+                                                                "networkProfile": {
+
+                                                                                "advancedNetworking": {
+
+                                                                                                "observability": {
+
+                                                                                                  "enabled": true
+
+                                                                                                }
+
+                                                                                },
+
+                                                                                "networkPlugin": "[parameters('networkPlugin')]",
+
+                                                                                "networkPluginMode": "[if(equals(parameters('networkPluginMode'),'none'), json('null'),parameters('networkPluginMode'))]",
+
+                                                                                "networkDataplane": "[if(equals(parameters('ebpfDataplane'),'none'), json('null'),parameters('ebpfDataplane'))]",
+
+                                                                                "networkPolicy": "[if(equals(parameters('networkPolicy'),'none'), json('null'),parameters('networkPolicy'))]",
+
+                                                                                "loadBalancerSku": "standard",
+
+                                                                                "podCidr": "[if(not(empty(parameters('podCidr'))), parameters('podCidr'), json('null'))]",
+
+                                                                                "serviceCidr": "[parameters('clusterServiceCidr')]",
+
+                                                                                "dnsServiceIP": "[parameters('dnsServiceIP')]",
+
+                                                                                "outboundType": "[parameters('outboundType')]",
+
+                                                                                "monitoring": {
+
+                        "enabled": true
+
+                    }
+
+                                                                },
+
+                                                                "identityProfile": {
+
+                                                                                "kubeletidentity": {
+
+                                                                                                "resourceId": "[parameters('runtimeUami').resourceID]",
+
+                                                                                                "clientId": "[parameters('runtimeUami').clientID]",
+
+                                                                                                "objectId": "[parameters('runtimeUami').objectID]"
+
+                                                                                }
+
+                                                                }
+
+                                                },
+
+                                                "identity": {
+
+                                                                "type": "UserAssigned",
+
+                                                                "userAssignedIdentities": {
+
+                                                                                "[parameters('controlPlaneUami').resourceID]": {
+
+ 
+
+                                                                                }
+
+                                                                }
+
+                                                },
+
+                                                "sku": {
+
+                                                                "name": "Base",
+
+                                                                "tier": "[parameters('uptimeSlaTier')]"
+
+                                                }
+
+                                },
+
+                                {
+
+                                                "apiVersion": "2017-05-10",
+
+                                                "name": "nestedTemplate",
+
+                                                "type": "Microsoft.Resources/deployments",
+
+                                                "resourceGroup": "[parameters('CsiKeyVaultRg')]",
+
+                                                "condition": "[and(parameters('azureKeyvaultSecretsProvider').enabled,not(parameters('securityProfile').workloadIdentity.enabled))]",
+
+                                                "dependsOn": [
+
+                                                                "[variables('clusterName')]"
+
+                                                ],
+
+                                                "properties": {
+
+                                                                "mode": "Incremental",
+
+                                                                "template": {
+
+                                                                                "$schema": https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#,
+
+                                                                                "contentVersion": "1.0.0.0",
+
+                                                                                "resources": [
+
+                                                                                                {
+
+                                                                                                                "type": "Microsoft.KeyVault/vaults/accessPolicies",
+
+                                                                                                                "name": "[concat(parameters('CsiKeyVaultName'), '/add')]",
+
+                                                                                                                "apiVersion": "2019-09-01",
+
+                                                                                                                "properties": {
+
+                                                                                                                                "accessPolicies": [
+
+                                                                                                                                                {
+
+                                                                                                                                                                "tenantId":
+
+...
+
+[Message clipped]  View entire message
+One attachment
+  • Scanned by Gmail

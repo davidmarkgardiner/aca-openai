@@ -1,0 +1,9 @@
+apiVersion: managedidentity.azure.com/v1api20230131
+kind: UserAssignedIdentity
+metadata:
+  name: danat-aks-user-assigned-identity
+  namespace: aso2
+spec:
+  location: uksouth
+  owner:
+    name: danat-aks

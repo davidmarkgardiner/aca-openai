@@ -1,0 +1,18 @@
+---
+apiVersion: compute.azure.com/v1api20220702
+kind: DiskEncryptionSet
+metadata:
+  creationTimestamp: null
+  name: danat-des
+spec:
+  activeKey:
+    keyUrl: https://azwi-kv-e5d0.vault.azure.net/keys/danat-des-key/eb8bd6f2847c41b3936bbff362d809fa
+  azureName: danat-des
+  encryptionType: EncryptionAtRestWithCustomerKey
+  identity:
+    type: UserAssigned
+    userAssignedIdentities:
+    - reference:
+        armId: /subscriptions/133d5755-4074-4d6e-ad38-eb2a6ad12903/resourceGroups/danat-aks/providers/Microsoft.ManagedIdentity/userAssignedIdentities/danat-aks-user-assigned-identity
+  location: uksouth
+---

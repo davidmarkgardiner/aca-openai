@@ -1,0 +1,142 @@
+---
+apiVersion: authorization.azure.com/v1api20220401
+kind: RoleAssignment
+metadata:
+  creationTimestamp: null
+  name: azwi-kv-e5d0-0f012ad5-2772-4599-9de5-5a799990d8dd
+spec:
+  azureName: 0f012ad5-2772-4599-9de5-5a799990d8dd
+  owner:
+    group: keyvault.azure.com
+    kind: Vault
+    name: azwi-kv-e5d0
+  principalId: 731eae1c-7dfd-4ec6-84a5-524be5483448
+  principalType: ServicePrincipal
+  roleDefinitionReference:
+    armId: /subscriptions/133d5755-4074-4d6e-ad38-eb2a6ad12903/providers/Microsoft.Authorization/roleDefinitions/4633458b-17de-408a-b874-0445c86b69e6
+---
+apiVersion: keyvault.azure.com/v1api20230701
+kind: Vault
+metadata:
+  creationTimestamp: null
+  name: azwi-kv-e5d0
+spec:
+  azureName: azwi-kv-e5d0
+  location: uksouth
+  properties:
+    accessPolicies:
+    - objectId: 1e63547c-4443-4bbf-8a3c-49f790cdd7c4
+      permissions:
+        certificates:
+        - Get
+        - List
+        - Update
+        - Create
+        - Import
+        - Delete
+        - Recover
+        - Backup
+        - Restore
+        - ManageContacts
+        - ManageIssuers
+        - GetIssuers
+        - ListIssuers
+        - SetIssuers
+        - DeleteIssuers
+        keys:
+        - Get
+        - List
+        - Update
+        - Create
+        - Import
+        - Delete
+        - Recover
+        - Backup
+        - Restore
+        - Decrypt
+        - Encrypt
+        - UnwrapKey
+        - WrapKey
+        - Verify
+        - Sign
+        - Release
+        - Rotate
+        - GetRotationPolicy
+        - SetRotationPolicy
+        secrets:
+        - Get
+        - List
+        - Set
+        - Delete
+        - Recover
+        - Backup
+        - Restore
+        storage:
+        - all
+      tenantId: 550cfcda-8a2d-452c-ba71-d6bc6bf5bb31
+    - objectId: 731eae1c-7dfd-4ec6-84a5-524be5483448
+      permissions:
+        certificates:
+        - List
+        - Get
+        keys:
+        - Get
+        - List
+        secrets:
+        - Get
+        - List
+      tenantId: 550cfcda-8a2d-452c-ba71-d6bc6bf5bb31
+    - objectId: f860222d-54b6-402b-b16c-25286acde8b9
+      permissions:
+        certificates:
+        - Get
+        - List
+        keys:
+        - Get
+        - List
+        secrets:
+        - Get
+        - List
+      tenantId: 550cfcda-8a2d-452c-ba71-d6bc6bf5bb31
+    - objectId: a18e2401-b6e0-4581-92ba-dc0584645e7d
+      permissions:
+        certificates:
+        - Get
+        - List
+        keys:
+        - Get
+        - List
+        secrets:
+        - Get
+        - List
+      tenantId: 550cfcda-8a2d-452c-ba71-d6bc6bf5bb31
+    - objectId: 16b7a69f-d2c8-4c37-a8b8-eed7d3ac6a81
+      permissions:
+        secrets:
+        - Get
+      tenantId: 550cfcda-8a2d-452c-ba71-d6bc6bf5bb31
+    - objectId: 9df2772f-0056-45c1-8fa5-edcb17b1121f
+      permissions:
+        certificates:
+        - get
+        - list
+        keys:
+        - get
+        - list
+        secrets:
+        - get
+        - list
+      tenantId: 550cfcda-8a2d-452c-ba71-d6bc6bf5bb31
+    enableSoftDelete: true
+    enabledForDeployment: false
+    enabledForDiskEncryption: false
+    enabledForTemplateDeployment: false
+    provisioningState: Succeeded
+    publicNetworkAccess: Enabled
+    sku:
+      family: A
+      name: standard
+    softDeleteRetentionInDays: 90
+    tenantId: 550cfcda-8a2d-452c-ba71-d6bc6bf5bb31
+    vaultUri: https://azwi-kv-e5d0.vault.azure.net/
+---
