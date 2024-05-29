@@ -48,7 +48,8 @@ authHeader="Authorization: Bearer $token"
 
 # Make the REST call to Azure DevOps API
 # response=$(curl -s -w "%{http_code}" -X POST -d "$payload" -H "Content-Type: application/json" -H "$authHeader" "$uri")
-response=$(curl -L -s -w "%{http_code}" -X POST -d "$payload" -H "Content-Type: application/json" -H "$authHeader" "$uri")
+# response=$(curl -L -s -w "%{http_code}" -X POST -d "$payload" -H "Content-Type: application/json" -H "$authHeader" "$uri")
+response=$(curl -L -s -w "%{http_code}" -X POST -d "$payload" -H "Content-Type: application/json" -H "Content-Length: ${#payload}" -H "$authHeader" "$uri")
 # Extract the status code from the response
 statusCode=$(echo "$response" | tail -n1)
 
