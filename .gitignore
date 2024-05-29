@@ -4,3 +4,4 @@ dapr.yaml
 api-keys.md
 *.sh
 *.pfx
+!payload.sh
