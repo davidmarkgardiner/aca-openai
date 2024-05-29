@@ -1,18 +1,18 @@
 #  The script authenticates with Azure using these credentials and gets an access token. The token is then added to the request headers using the `Authorization` header.
 
 
-# Import the Az.Accounts module
-Import-Module Az.Accounts
+# # Import the Az.Accounts module
+# Import-Module Az.Accounts
 
-# Define your Service Principal credentials
-$tenantId = "<your-tenant-id>"
-$clientId = "<your-client-id>"
-$clientSecret = "<your-client-secret>"
+# # Define your Service Principal credentials
+# $tenantId = "<your-tenant-id>"
+# $clientId = "<your-client-id>"
+# $clientSecret = "<your-client-secret>"
 
 # Authenticate and get the access token
-$securePassword = ConvertTo-SecureString -String $clientSecret -AsPlainText -Force
-$psCredential = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $clientId, $securePassword
-Connect-AzAccount -ServicePrincipal -Credential $psCredential -Tenant $tenantId
+# $securePassword = ConvertTo-SecureString -String $clientSecret -AsPlainText -Force
+# $psCredential = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $clientId, $securePassword
+# Connect-AzAccount -ServicePrincipal -Credential $psCredential -Tenant $tenantId
 $token = (Get-AzAccessToken -ResourceUrl "https://management.azure.com/").Token
 
 # Define the payload
