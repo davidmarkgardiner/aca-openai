@@ -3,6 +3,7 @@
 # Define the payload
 payload=$(jq -n \
   --arg id "2" \
+  --arg sourceBranch "refs/heads/dev" \
   --arg action "Add" \
   --arg swci "at65999" \
   --arg suffix "poc1" \
@@ -20,6 +21,7 @@ payload=$(jq -n \
   --arg requestedBy "david.gardiner@ubs.com" \
   '{
     "definition": {"id": $id},
+    "sourceBranch": $sourceBranch,
     "action": $action,
     "swci": $swci,
     "suffix": $suffix,
@@ -36,6 +38,9 @@ payload=$(jq -n \
     "allowAccessFromNS": $allowAccessFromNS,
     "requestedBy": $requestedBy
   }')
+
+# write ouput of payload
+echo "$payload"
 
 # Define the URI for the Azure DevOps API
 uri="https://dev.azure.com/home-k8s/Homelab/_apis/build/builds?api-version=6.0"
