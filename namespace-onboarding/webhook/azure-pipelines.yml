@@ -1,24 +1,52 @@
 name: "Passing params from build api"
 parameters:
-- name: danatWebHook2
-  type: object
-  default: {}
-  properties:
-    action: string
-    swci: string
-    suffix: string
-    region: string
-    opEnvironment: string
-    resourceQuotaCPU: string
-    resourceQuotaMemoryGB: string
-    resourceQuotaStorageGB: string
-    billingReference: string
-    source: string
-    swcID: string
-    dataClassification: string
-    appSubdomain: string
-    allowAccessFromNS: string
-    requestedBy: string
+- name: action
+  type: string
+  default: 'add'
+- name: swci
+  type: string
+  default: 'at73215'
+- name: suffix
+  type: string
+  default: 'dev1'
+- name: region
+  type: string
+  default: 'westeurope'
+- name: opEnvironment
+  type: string
+  default: 'dev'  
+- name: resourceQuotaCPU  
+  type: string
+  default: '0.5'  
+- name: resourceQuotaMemoryGB
+  type: string
+  default: '3'
+- name: resourceQuotaStorageGB
+  type: string
+  default: '99'
+- name: billingReference
+  type: string
+  default: 'AB-BC-ABCDE-ABCDE'
+- name: source
+  type: string
+  default: 'GSNOW'  
+- name: swcID
+  type: string
+  default: 'AA98765'
+- name: dataClassification
+  type: string
+  default: 'public'
+- name: appSubdomain
+  type: string
+  default: 'ob-test'
+- name: allowAccessFromNS
+  type: string
+  default: 'at98765'
+- name: requestedBy
+  type: string
+  default: david.gardiner@ubs.com
+
+
 
 variables:
   action: ${{ parameters.action }}
