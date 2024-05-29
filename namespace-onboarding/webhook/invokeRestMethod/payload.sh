@@ -47,8 +47,8 @@ token=$(az account get-access-token --resource "https://management.azure.com/" |
 authHeader="Authorization: Bearer $token"
 
 # Make the REST call to Azure DevOps API
-response=$(curl -s -w "%{http_code}" -X POST -d "$payload" -H "Content-Type: application/json" -H "$authHeader" "$uri")
-
+# response=$(curl -s -w "%{http_code}" -X POST -d "$payload" -H "Content-Type: application/json" -H "$authHeader" "$uri")
+response=$(curl -L -s -w "%{http_code}" -X POST -d "$payload" -H "Content-Type: application/json" -H "$authHeader" "$uri")
 # Extract the status code from the response
 statusCode=$(echo "$response" | tail -n1)
 
