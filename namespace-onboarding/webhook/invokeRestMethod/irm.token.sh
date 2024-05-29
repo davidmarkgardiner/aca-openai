@@ -58,5 +58,5 @@ authorization="Authorization: Bearer $token"
 signatureHeader="X-myapp-signature: $signature"
 
 # Send the POST request
-response=$(curl -s -X POST -d "$payload" -H "$contentType" -H "$authorization" -H "$signatureHeader" 'https://dev.azure.com/home-k8s/_apis/public/distributedtask/webhooks/danatWebHook?api-version=6.0-preview')
-
+response=$(curl -v -s -X POST -d "$payload" -H "$contentType" -H "$authorization" -H "$signatureHeader" 'https://dev.azure.com/home-k8s/_apis/public/distributedtask/webhooks/danatWebHook?api-version=6.0-preview' 2>&1)
+echo "$response"
