@@ -1,0 +1,28 @@
+
+apiVersion: web.azure.com/v1api20220301
+kind: ServerFarm
+metadata:
+  name: uk8sserverfarm
+  namespace: uk8ssite
+spec:
+  location: uksouth
+  owner:
+    name: cosmos-site-rg
+  sku:
+    name: F1
+    tier: Free
+---
+apiVersion: web.azure.com/v1api20220301
+kind: Site
+metadata:
+  name: uk8ssite
+  namespace: uk8ssite
+spec:
+  enabled: true
+  location: uksouth
+  owner:
+    name: cosmos-site-rg
+  serverFarmReference:
+    group: web.azure.com
+    kind: ServerFarm
+    name: uk8sserverfarm

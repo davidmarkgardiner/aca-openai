@@ -1,0 +1,91 @@
+---
+apiVersion: storage.azure.com/v1api20230101
+kind: StorageAccount
+metadata:
+  creationTimestamp: null
+  name: uk8sstorage
+spec:
+  accessTier: Hot
+  allowBlobPublicAccess: false
+  allowCrossTenantReplication: false
+  allowSharedKeyAccess: true
+  azureName: uk8sstorage
+  defaultToOAuthAuthentication: false
+  dnsEndpointType: Standard
+  encryption:
+    keySource: Microsoft.Storage
+    requireInfrastructureEncryption: false
+    services:
+      blob:
+        enabled: true
+        keyType: Account
+      file:
+        enabled: true
+        keyType: Account
+  kind: StorageV2
+  largeFileSharesState: Enabled
+  location: uksouth
+  minimumTlsVersion: TLS1_2
+  networkAcls:
+    bypass: AzureServices
+    defaultAction: Allow
+  publicNetworkAccess: Enabled
+  sku:
+    name: Standard_LRS
+    tier: Standard
+  supportsHttpsTrafficOnly: true
+  owner:
+    name: cosmos-site-rg
+---
+apiVersion: storage.azure.com/v1api20230101
+kind: StorageAccountsBlobService
+metadata:
+  creationTimestamp: null
+  name: uk8sstorage-default
+spec:
+  containerDeleteRetentionPolicy:
+    days: 7
+    enabled: true
+  cors: {}
+  deleteRetentionPolicy:
+    allowPermanentDelete: false
+    days: 7
+    enabled: true
+  owner:
+    name: uk8sstorage
+---
+apiVersion: storage.azure.com/v1api20230101
+kind: StorageAccountsFileService
+metadata:
+  creationTimestamp: null
+  name: uk8sstorage-default
+spec:
+  cors: {}
+  owner:
+    name: uk8sstorage
+  protocolSettings:
+    smb: {}
+  shareDeleteRetentionPolicy:
+    days: 7
+    enabled: true
+---
+apiVersion: storage.azure.com/v1api20230101
+kind: StorageAccountsQueueService
+metadata:
+  creationTimestamp: null
+  name: uk8sstorage-default
+spec:
+  cors: {}
+  owner:
+    name: uk8sstorage
+---
+apiVersion: storage.azure.com/v1api20230101
+kind: StorageAccountsTableService
+metadata:
+  creationTimestamp: null
+  name: uk8sstorage-default
+spec:
+  cors: {}
+  owner:
+    name: uk8sstorage
+---
