@@ -1,0 +1,18 @@
+---
+apiVersion: compute.azure.com/v1api20220702
+kind: DiskEncryptionSet
+metadata:
+  creationTimestamp: null
+  name: ${DISK_ENCRYPTION_SET_NAME}
+spec:
+  activeKey:
+    keyUrl: ${KEY_URL}
+  azureName: danat-des
+  encryptionType: EncryptionAtRestWithCustomerKey
+  identity:
+    type: UserAssigned
+    userAssignedIdentities:
+    - reference:
+        armId: ${USER_ASSIGNED_IDENTITY}
+  location: uksouth
+---

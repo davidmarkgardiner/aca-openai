@@ -1,0 +1,28 @@
+
+apiVersion: web.azure.com/v1api20220301
+kind: ServerFarm
+metadata:
+  name: ${SERVER_FARM_NAME}
+  namespace: ${NAMESPACE}
+spec:
+  location: ${LOCATION}
+  owner:
+    name: ${APP_NAME}-rg
+  sku:
+    name: ${SKU_NAME}
+    tier: ${SKU_TIER}
+---
+apiVersion: web.azure.com/v1api20220301
+kind: Site
+metadata:
+  name: ${SITE_NAME}
+  namespace: ${NAMESPACE}
+spec:
+  enabled: true
+  location: ${LOCATION}
+  owner:
+    name: ${APP_NAME}-rg
+  serverFarmReference:
+    group: web.azure.com
+    kind: ServerFarm
+    name: ${SERVER_FARM_NAME}

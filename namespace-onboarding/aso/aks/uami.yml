@@ -1,0 +1,9 @@
+apiVersion: managedidentity.azure.com/v1api20230131
+kind: UserAssignedIdentity
+metadata:
+  name: ${USER_ASSIGNED_IDENTITY}
+  namespace: ${NAMESPACE}
+spec:
+  location: ${LOCATION}
+  owner:
+    name: ${APP_NAME}-rg
