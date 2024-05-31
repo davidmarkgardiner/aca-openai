@@ -1,0 +1,43 @@
+trigger: none
+
+stages:
+- stage: Checkout
+  jobs:
+  - job: Checkout
+    steps:
+    - checkout: self
+    - script: |
+        git checkout -b new-branch
+
+- stage: CreateFile
+  jobs:
+  - job: CreateFile
+    steps:
+    - script: |
+        echo "This is a new file" > newfile.txt
+
+- stage: CommitPush
+  jobs:
+  - job: CommitPush
+    steps:
+    - script: |
+        git config --global user.email "you@example.com"
+        git config --global user.name "Your Name"
+        git add .
+        git commit -m "Add new file"
+        git push origin new-branch
+
+- stage: CreatePR
+  jobs:
+  - job: CreatePR
+    steps:
+    - task: CreatePullRequest@1
+      inputs:
+        repoType: 'Azure DevOps'
+        azureDevOpsServiceConnection: 'MyServiceConnection'
+        repository: 'MyRepo'
+        sourceBranch: 'new-branch'
+        targetBranch: 'main'
+        title: 'New PR from Pipeline'
+        description: 'This PR was created by an Azure DevOps Pipeline'
+        linkWorkItems: false

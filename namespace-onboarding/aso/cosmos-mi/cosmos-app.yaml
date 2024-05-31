@@ -1,0 +1,74 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: ${APP_NAME}-service-account
+  namespace: ${NAMESPACE}
+  labels:
+    azure.workload.identity/use: "true"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: ${APP_NAME}-app
+  name: ${APP_NAME}-app
+  namespace: ${NAMESPACE}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ${APP_NAME}-app
+  template:
+    metadata:
+      labels:
+        app: ${APP_NAME}-app
+      annotations:
+        azure.workload.identity/inject-proxy-sidecar: "true"
+    spec:
+      serviceAccountName: ${APP_NAME}-service-account
+      containers:
+      - name: app
+        image: mcr.microsoft.com/k8s/asodemos/cosmostodo:latest
+        env:
+          - name: CosmosDB__Account
+            valueFrom:
+              secretKeyRef:
+                # This is the secret created by ASO associated with the CosmosDB Account.
+                name: ${APP_NAME}-sqldb-connection-settings
+                # See https://azure.github.io/azure-service-operator/reference/documentdb/v1api20210515/#documentdb.azure.com/v1api20210515.DatabaseAccount for more details
+                key: documentEndpoint
+                optional: false
+          - name: CosmosDB__DatabaseName
+            value: "${APP_NAME}-sql-db"
+          - name: CosmosDB__ContainerName
+            value: "${APP_NAME}-sql-container"
+          - name: AZURE_CLIENT_ID
+            valueFrom:
+              configMapKeyRef:
+                key: clientId
+                name: ${APP_NAME}-identity-settings # This is the configmap created by ASO associated with the Managed Identity. See the UserAssignedIdentity resource for more details.
+                optional: false
+        ports:
+        - containerPort: 80
+          name: webserver
+          protocol: TCP
+        resources:
+          limits:
+            cpu: 500m
+            memory: 512Mi
+          requests:
+            cpu: 200m
+            memory: 256Mi
+      terminationGracePeriodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ${APP_NAME}-svc
+  namespace: ${NAMESPACE}
+spec:
+  ports:
+  - port: 80
+    targetPort: 80
+  selector:
+    app: cosmos-todo-app

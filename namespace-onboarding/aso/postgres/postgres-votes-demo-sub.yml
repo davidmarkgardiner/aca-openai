@@ -1,0 +1,80 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: postgres1
+---
+apiVersion: resources.azure.com/v1api20200601
+kind: ResourceGroup
+metadata:
+  name: postgres1-rg
+  namespace: postgres1
+spec:
+  location: uksouth
+---
+apiVersion: v1
+kind: Secret
+metadata:
+ name: aso-credential
+ namespace: postgres1
+stringData:
+ AZURE_SUBSCRIPTION_ID: "133d5755-4074-4d6e-ad38-eb2a6ad12903"
+ AZURE_TENANT_ID: "550cfcda-8a2d-452c-ba71-d6bc6bf5bb31"
+ AZURE_CLIENT_ID: "c402caff-2514-45ab-a53d-cd176dc078b4"
+ AZURE_CLIENT_SECRET: ""
+---
+apiVersion: dbforpostgresql.azure.com/v1api20210601
+kind: FlexibleServer
+metadata:
+  name: postgres1-server
+  namespace: postgres1
+spec:
+  location: uksouth
+  owner:
+    name: postgres1-rg
+  version: "13"
+  sku:
+    name: Standard_D4s_v3
+    tier: GeneralPurpose
+  administratorLogin: davidgardiner
+  administratorLoginPassword:
+    name: postgres-secret
+    key: PASSWORD
+  storage:
+    storageSizeGB: 128
+---
+apiVersion: dbforpostgresql.azure.com/v1api20210601
+kind: FlexibleServersDatabase
+metadata:
+  name: postgres1-server-db
+  namespace: postgres1
+spec:
+  owner:
+    name: postgres1-server
+  charset: utf8
+---
+apiVersion: dbforpostgresql.azure.com/v1api20210601
+kind: FlexibleServersFirewallRule
+metadata:
+  name: postgres1-allow-all
+  namespace: postgres1
+spec:
+  owner:
+    name: postgres1-server
+  # The following address range allows anybody to connect to this server.
+  # This should only be used for demo purposes and not in production!
+  # There are other ways to control server access which are not covered here, you can see more about it here:
+  # https://docs.microsoft.com/azure/postgresql/flexible-server/concepts-security#network-security
+  startIpAddress: 0.0.0.0
+  endIpAddress: 255.255.255.255
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: postgres-secret
+  namespace: postgres1
+stringData:
+  USERNAME: "davidgardiner"
+  PASSWORD: "supersecretpassword"
+  SERVER:   "postgres1-server.postgres.database.azure.com"
+  DATABASE: "postgres1-server-db"
+  PORT:     "5432"
