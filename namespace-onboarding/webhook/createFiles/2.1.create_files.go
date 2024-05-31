@@ -174,6 +174,9 @@ func main() {
 	if item.AppSubDomain == "" {
 		item.AppSubDomain = item.Swci + "-" + item.OpEnvironment + "-" + item.Suffix
 	}
+	// fmt.Println("item:", item)
+	dir := fmt.Sprintf("../environment/%s/%s/%s-%s", item.Region, clustername, item.Swci, item.Suffix)
+	fmt.Println("dir:", dir)
 	if item.Action == "add" || item.Action == "modify" {
 		// Directory to create for the environment
 		dir := fmt.Sprintf("../environment/%s/%s/%s-%s", item.Region, clustername, item.Swci, item.Suffix)
@@ -339,6 +342,19 @@ func main() {
 		fmt.Println("Unknown action operation:", item.Action)
 		os.Exit(1)
 	}
+
+	
+// After all files have been processed...
+createdFiles, err := filepath.Glob(dir + "/*.yaml")
+if err != nil {
+    fmt.Println("Error listing created files:", err)
+    return
+}
+
+fmt.Println("Created files:")
+for _, file := range createdFiles {
+    fmt.Println(file)
+}
 
 }
 
