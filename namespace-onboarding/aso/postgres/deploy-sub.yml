@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres1-postgresql-deployment
+  namespace: postgres1
+spec:
+  selector:
+    matchLabels:
+      app: postgres1-postgresql
+  replicas: 1
+  template:
+    metadata:
+      name: postgres1-postgresql
+      labels:
+        app: postgres1-postgresql
+    spec:
+      containers:
+        - name: postgres1-postgresql
+          image: mcr.microsoft.com/k8s/asodemos/postgresqlvotes:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: USERNAME
+            - name: PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: PASSWORD
+            - name: SERVER
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: SERVER
+            - name: DATABASE
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: DATABASE
+            - name: PORT
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: PORT
