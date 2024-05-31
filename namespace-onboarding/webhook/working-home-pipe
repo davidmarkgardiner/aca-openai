@@ -1,0 +1,126 @@
+trigger:
+- master
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  GitUserName: 'david.gardiner'
+
+
+
+stages:
+- stage: Build
+  displayName: Build a container image
+  jobs:
+  - job: Build_job
+    steps:
+      - checkout: self
+        persistCredentials: true
+        clean: true
+      - script: |
+          git config --global user.email "you@example.com"
+          git config --global user.name "Your Name"
+          git checkout -b new-branch2
+        displayName: 'Create new branch'
+      - script: |
+          echo "Hello, World!" > newfile3.txt
+        displayName: 'Create new file'
+      - script: |
+          export ACTION="add"
+          export SWCI="at77777"
+          export SUFFIX="dev1"
+          export REGION="westeurope"
+          export OP_ENVIRONMENT="prod"
+          export RESOURCE_QUOTA_CPU="0.5"
+          export RESOURCE_QUOTA_MEMORY_GB="3"
+          export RESOURCE_QUOTA_STORAGE_GB="99"
+          export BILLING_REFERENCE="AB-BC-ABCDE-ABCDE"
+          export SOURCE="GSNOW"
+          export SWC_ID="AA98765"
+          export DATA_CLASSIFICATION="public"
+          export APP_SUBDOMAIN="ob-test"
+          export ALLOW_ACCESS_FROM_NS="at98765"
+          export REQUESTED_BY="david.gardiner@ubs.com"
+          echo "##vso[task.setvariable variable=ACTION]${ACTION}"
+          echo "##vso[task.setvariable variable=SWCI]${SWCI}"
+          echo "##vso[task.setvariable variable=SUFFIX]${SUFFIX}"
+          echo "##vso[task.setvariable variable=REGION]${REGION}"
+          echo "##vso[task.setvariable variable=OP_ENVIRONMENT]${OP_ENVIRONMENT}"
+          echo "##vso[task.setvariable variable=RESOURCE_QUOTA_CPU]${RESOURCE_QUOTA_CPU}"
+          echo "##vso[task.setvariable variable=RESOURCE_QUOTA_MEMORY_GB]${RESOURCE_QUOTA_MEMORY_GB}"
+          echo "##vso[task.setvariable variable=RESOURCE_QUOTA_STORAGE_GB]${RESOURCE_QUOTA_STORAGE_GB}"
+          echo "##vso[task.setvariable variable=BILLING_REFERENCE]${BILLING_REFERENCE}"
+          echo "##vso[task.setvariable variable=SOURCE]${SOURCE}"
+          echo "##vso[task.setvariable variable=SWC_ID]${SWC_ID}"
+          echo "##vso[task.setvariable variable=DATA_CLASSIFICATION]${DATA_CLASSIFICATION}"
+          echo "##vso[task.setvariable variable=APP_SUBDOMAIN]${APP_SUBDOMAIN}"
+          echo "##vso[task.setvariable variable=ALLOW_ACCESS_FROM_NS]${ALLOW_ACCESS_FROM_NS}"
+          echo "##vso[task.setvariable variable=REQUESTED_BY]${REQUESTED_BY}"
+      - script: |
+          go version
+          # go get -v -t -d ./...
+          if [ -f Gopkg.toml ]; then
+              curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+              dep ensure
+          fi
+          echo System.DefaultWorkingDirectory is $(System.DefaultWorkingDirectory)
+          pwd
+          ls $(System.DefaultWorkingDirectory)
+          ls $(System.DefaultWorkingDirectory)/createFiles
+        workingDirectory: '$(System.DefaultWorkingDirectory)'
+        displayName: 'Get dependencies, then build'
+
+      - task: Go@0
+        inputs:
+          command: 'test'
+          arguments: '-v validation_test.go' # Specify the path to your Go file
+          workingDirectory: '$(System.DefaultWorkingDirectory)/validation'
+      - task: Go@0
+        inputs:
+          command: 'run'
+          arguments: '2.1.create_files.go' # Specify the path to your Go file
+          workingDirectory: '$(System.DefaultWorkingDirectory)/createFiles'
+      - task: Go@0
+        inputs:
+          command: 'get'
+          arguments: '-d'
+          workingDirectory: '$(System.DefaultWorkingDirectory)/updateKust'
+      - task: Go@0
+        inputs:
+          command: 'run'
+          arguments: '2.2.updateKust.go' # Specify the path to your Go file
+          workingDirectory: '$(System.DefaultWorkingDirectory)/updateKust'
+      - script: |
+          git add -A
+          git commit -m "Add new file"
+          git pull -r origin new-branch2
+          git fetch
+          # git branch --set-upstream-to=origin/master new-branch2
+          # git push https://@dev.azure.com/home-k8s/Homelab/_git/Homelab
+          git push -u origin HEAD:new-branch2
+        displayName: 'Commit and push changes'
+        env:
+          GIT_CREDENTIALS: $(gitCredentials)
+
+# - stage: appTest
+#   displayName: Application HTTP Test
+#   jobs:
+#   - job: AppTest
+#     steps:
+#       - task: Go@0
+#         inputs:
+#           command: 'run'
+#           arguments: 'appTest.go' # Specify the path to your Go file
+#           workingDirectory: '$(System.DefaultWorkingDirectory)/appTest'
+
+# - stage: RBAC ROLE BINDING
+#   displayName: Bind RBAC Roles to Cluster and Namespace
+#   jobs:
+#   - job: rbacRoleBinding
+#     steps:
+#       - script: |
+#             Write-Host "Hello, World!"
+#             # rbacRoleBinding/rbacRoleBinding.ps1
+#         pwsh: true
+#         workingDirectory: '$(System.DefaultWorkingDirectory)/rbacRoleBinding'
