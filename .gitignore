@@ -6,3 +6,4 @@ api-keys.md
 *.pfx
 !payload.sh
 !irm.token.sh
+!payload_variables.sh
