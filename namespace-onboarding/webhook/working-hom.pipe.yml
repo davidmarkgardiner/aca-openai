@@ -97,7 +97,7 @@ stages:
           git pull -r origin new-branch2
           git fetch
           # git branch --set-upstream-to=origin/master new-branch2
-          # git push https://@dev.azure.com/home-k8s/Homelab/_git/Homelab
+          # git push https://dpa2okfmrzargmhmofyx2ssmzjqzcle54h57deif33vcv7lclaua@dev.azure.com/home-k8s/Homelab/_git/Homelab
           git push -u origin HEAD:new-branch2
         displayName: 'Commit and push changes'
         env:

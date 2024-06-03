@@ -1,11 +1,7 @@
 #!/bin/bash
 
-
-# Define the payload
-payload=$(jq -n \
-  --arg id "2" \
-  --arg sourceBranch "refs/heads/dev" \
-  --argjson parameters '{
+# Define the parameters as a string
+parameters='{
     "action": "Add",
     "swci": "at65999",
     "suffix": "poc1",
@@ -21,12 +17,44 @@ payload=$(jq -n \
     "appSubdomain": "",
     "allowAccessFromNS": "at98765",
     "requestedBy": "david.gardiner@ubs.com"
-  }' \
+}'
+
+# Define the payload
+payload=$(jq -n \
+  --arg id "2" \
+  --arg sourceBranch "refs/heads/dev" \
+  --argjson parameters "$(echo $parameters)" \
   '{
     "definition": {"id": $id},
     "sourceBranch": $sourceBranch,
     "parameters": $parameters
   }')
+# # Define the payload
+# payload=$(jq -n \
+#   --arg id "2" \
+#   --arg sourceBranch "refs/heads/dev" \
+#   --argjson parameters '{
+#     "action": "Add",
+#     "swci": "at65999",
+#     "suffix": "poc1",
+#     "region": "westeurope",
+#     "opEnvironment": "dev",
+#     "resourceQuotaCPU": "500m",
+#     "resourceQuotaMemoryGB": "3",
+#     "resourceQuotaStorageGB": "128",
+#     "billingReference": "AB-BC-ABCDE-ABCDE",
+#     "source": "GSNOW",
+#     "swcID": "AA98765",
+#     "dataClassification": "public",
+#     "appSubdomain": "",
+#     "allowAccessFromNS": "at98765",
+#     "requestedBy": "david.gardiner@ubs.com"
+#   }' \
+#   '{
+#     "definition": {"id": $id},
+#     "sourceBranch": $sourceBranch,
+#     "parameters": $parameters
+#   }')
 
 # # Define the payload
 # payload=$(jq -n \
