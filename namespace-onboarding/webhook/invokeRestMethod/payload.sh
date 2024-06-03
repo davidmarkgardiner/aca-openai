@@ -1,34 +1,35 @@
 #!/bin/bash
 
-# Define the parameters as a string
-parameters='{
-    "action": "Add",
-    "swci": "at65999",
-    "suffix": "poc1",
-    "region": "westeurope",
-    "opEnvironment": "dev",
-    "resourceQuotaCPU": "500m",
-    "resourceQuotaMemoryGB": "3",
-    "resourceQuotaStorageGB": "128",
-    "billingReference": "AB-BC-ABCDE-ABCDE",
-    "source": "GSNOW",
-    "swcID": "AA98765",
-    "dataClassification": "public",
-    "appSubdomain": "",
-    "allowAccessFromNS": "at98765",
-    "requestedBy": "david.gardiner@ubs.com"
-}'
+# # Define the parameters as a string
+# parameters='{
+#     "action": "Add",
+#     "swci": "at65999",
+#     "suffix": "poc1",
+#     "region": "westeurope",
+#     "opEnvironment": "dev",
+#     "resourceQuotaCPU": "500m",
+#     "resourceQuotaMemoryGB": "3",
+#     "resourceQuotaStorageGB": "128",
+#     "billingReference": "AB-BC-ABCDE-ABCDE",
+#     "source": "GSNOW",
+#     "swcID": "AA98765",
+#     "dataClassification": "public",
+#     "appSubdomain": "",
+#     "allowAccessFromNS": "at98765",
+#     "requestedBy": "david.gardiner@ubs.com"
+# }'
 
-# Define the payload
-payload=$(jq -n \
-  --arg id "2" \
-  --arg sourceBranch "refs/heads/dev" \
-  --argjson parameters "$(echo $parameters)" \
-  '{
-    "definition": {"id": $id},
-    "sourceBranch": $sourceBranch,
-    "parameters": $parameters
-  }')
+# # Define the payload
+# payload=$(jq -n \
+#   --arg id "2" \
+#   # --arg sourceBranch "refs/heads/dev" \
+#   --arg sourceBranch "refs/heads/master" \
+#   --argjson parameters "$(echo $parameters)" \
+#   '{
+#     "definition": {"id": $id},
+#     "sourceBranch": $sourceBranch,
+#     "parameters": $parameters
+#   }')
 # # Define the payload
 # payload=$(jq -n \
 #   --arg id "2" \
@@ -56,44 +57,45 @@ payload=$(jq -n \
 #     "parameters": $parameters
 #   }')
 
-# # Define the payload
-# payload=$(jq -n \
-#   --arg id "2" \
-#   --arg sourceBranch "refs/heads/dev" \
-#   --arg action "Add" \
-#   --arg swci "at65999" \
-#   --arg suffix "poc1" \
-#   --arg region "westeurope" \
-#   --arg opEnvironment "dev" \
-#   --arg resourceQuotaCPU "500m" \
-#   --arg resourceQuotaMemoryGB "3" \
-#   --arg resourceQuotaStorageGB "128" \
-#   --arg billingReference "AB-BC-ABCDE-ABCDE" \
-#   --arg source "GSNOW" \
-#   --arg swcID "AA98765" \
-#   --arg dataClassification "public" \
-#   --arg appSubdomain "" \
-#   --arg allowAccessFromNS "at98765" \
-#   --arg requestedBy "david.gardiner@ubs.com" \
-#   '{
-#     "definition": {"id": $id},
-#     "sourceBranch": $sourceBranch,
-#     "action": $action,
-#     "swci": $swci,
-#     "suffix": $suffix,
-#     "region": $region,
-#     "opEnvironment": $opEnvironment,
-#     "resourceQuotaCPU": $resourceQuotaCPU,
-#     "resourceQuotaMemoryGB": $resourceQuotaMemoryGB,
-#     "resourceQuotaStorageGB": $resourceQuotaStorageGB,
-#     "billingReference": $billingReference,
-#     "source": $source,
-#     "swcID": $swcID,
-#     "dataClassification": $dataClassification,
-#     "appSubdomain": $appSubdomain,
-#     "allowAccessFromNS": $allowAccessFromNS,
-#     "requestedBy": $requestedBy
-#   }')
+  # --arg sourceBranch "refs/heads/dev" \
+# Define the payload
+payload=$(jq -n \
+  --arg id "2" \
+  --arg sourceBranch "master" \
+  --arg action "Add" \
+  --arg swci "at65999" \
+  --arg suffix "poc1" \
+  --arg region "westeurope" \
+  --arg opEnvironment "dev" \
+  --arg resourceQuotaCPU "500m" \
+  --arg resourceQuotaMemoryGB "3" \
+  --arg resourceQuotaStorageGB "128" \
+  --arg billingReference "AB-BC-ABCDE-ABCDE" \
+  --arg source "GSNOW" \
+  --arg swcID "AA98765" \
+  --arg dataClassification "public" \
+  --arg appSubdomain "" \
+  --arg allowAccessFromNS "at98765" \
+  --arg requestedBy "david.gardiner@ubs.com" \
+  '{
+    "definition": {"id": $id},
+    "sourceBranch": $sourceBranch,
+    "action": $action,
+    "swci": $swci,
+    "suffix": $suffix,
+    "region": $region,
+    "opEnvironment": $opEnvironment,
+    "resourceQuotaCPU": $resourceQuotaCPU,
+    "resourceQuotaMemoryGB": $resourceQuotaMemoryGB,
+    "resourceQuotaStorageGB": $resourceQuotaStorageGB,
+    "billingReference": $billingReference,
+    "source": $source,
+    "swcID": $swcID,
+    "dataClassification": $dataClassification,
+    "appSubdomain": $appSubdomain,
+    "allowAccessFromNS": $allowAccessFromNS,
+    "requestedBy": $requestedBy
+  }')
 
 # write ouput of payload
 echo "$payload"
