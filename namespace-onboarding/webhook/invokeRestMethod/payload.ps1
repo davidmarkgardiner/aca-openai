@@ -17,9 +17,9 @@ $variables = @{
     REQUESTEDBY = "david.gardiner@ubs.com"
 }
 
-$body = @{
+$payload = @{
   definition = {id = 2}
-  sourceBranch = "refs/heads/master"
+  sourceBranch = "master"
   parameters = ($variables | ConvertTo-Json)
 }
 

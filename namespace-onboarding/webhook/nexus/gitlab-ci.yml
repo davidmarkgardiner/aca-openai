@@ -1,0 +1,87 @@
+
+# Job to publish the infrastructure artifact
+.publish_artifacts:
+  # ...
+  script:
+    - echo $(cat version.txt) > artefact_version.txt
+  artifacts:
+    paths:
+      - artefact_version.txt
+
+
+
+Publish Infra-Artefact:
+  extends:
+    - .publish_artifacts
+  script:
+    - |
+      # Run the script to publish artifacts
+      ./pipelines/scripts/90_publish_artifacts.sh --folder-location "." --is-release "true" --nexus-creds $NEXUS_CREDS
+      # Check if the script ran successfully
+      [ $? -eq 0 ] && echo "[SUCCESS] Infra release artefact created and published to nexus" || echo "[ERROR]: Failed to create and publish infra release artefact"
+  variables:
+    UBSCTL_FINGERPRINT_ARTIFACTS: "target/*.tar.gz"
+  rules:
+    # - if: $CI_COMMIT_REF_NAME =~ /^release\/.*/
+    - if: '$CI_COMMIT_REF_NAME =~ /^release\/.*/ || $CI_COMMIT_TAG'
+      changes:
+        - pipelines/*
+        - src/*
+        - .gitlab-ci.yml
+        - version.txt
+
+# Job to publish the snapshot of the infrastructure artifact
+Publish Snapshot Infra-Artefact:
+  extends:
+    - .publish_artifacts
+  script:
+    - |
+      # Run the script to publish artifacts
+      ./pipelines/scripts/90_publish_artifacts.sh --folder-location "." --is-release "false" --nexus-creds $NEXUS_CREDS
+      # Check if the script ran successfully
+      [ $? -eq 0 ] && echo "[SUCCESS] Infra release artefact created and published to nexus" || echo "[ERROR]: Failed to create and publish infra release artefact"
+  rules:
+    - if: $CI_COMMIT_REF_NAME =~ /^release\/.*/
+      when: never
+    - if: $CI_COMMIT_REF_NAME !~ /^release\/.*/
+      changes:
+        - pipelines/*
+        - src/*
+        - .gitlab-ci.yml
+        - version.txt
+
+
+
+# Job to create a release
+release-job:
+  extends:
+    - .publish_artifacts
+  image: container-registry.ubs.net/gitlab-org/release-cli:latest
+  cache: {}
+  script:
+  - |
+    ARTEFACT_VERSION=$(cat artefact_version.txt)
+    # Check if the artifact version is available
+    if [ -z "${ARTEFACT_VERSION}" ]; then
+      echo "ERROR: Your release version is not available in the VERSION environment variable"
+      echo "Not making a release"
+      exit 1
+    fi
+    # Create a release description
+    cat << EOF | tee release-description.md
+    release v${ARTEFACT_VERSION}
+    Change-ref: ${CHANGE_REF}
+    EOF
+  artifacts:
+    paths:
+      - release-description.md
+  release:
+    name: "release-${ARTEFACT_VERSION}"
+    description: release-description.md
+    tag_name: "v${ARTEFACT_VERSION}"
+    ref: "${CI_COMMIT_SHA}"
+  needs:
+    - job: Publish Infra-Artefact
+      optional: true
+  rules:
+    - if: $CI_COMMIT_REF_NAME =~ /^release\/.*/

@@ -1,0 +1,13 @@
+## Publish Infra-Artefact:
+Publish Infra-Artefact: This job extends from .publish_artifacts and runs a script (90_publish_artifacts.sh) to publish infrastructure artifacts. The script is run with a folder location of ".", indicating the current directory, and --is-release "true" indicating that this is a release. The Nexus credentials are passed in via the NEXUS_CREDS environment variable. If the script runs successfully, a success message is printed; otherwise, an error message is printed. This job only runs if the commit reference name matches the pattern ^release\/.* and if there are changes in the pipelines/*, src/*, .gitlab-ci.yml, or version.txt files.
+
+## Snapshot Infra-Artefact
+Publish Snapshot Infra-Artefact: Similar to the previous job, but it's intended for snapshot artifacts (non-release versions). The --is-release flag is set to "false". This job never runs if the commit reference name matches the pattern ^release\/.*. It only runs if the commit reference name does not match that pattern and if there are changes in the same set of files as the previous job.
+## Publish Infra-Artefact
+Publish Config-Artefact: This job is similar to the "Publish Infra-Artefact" job, but it's intended for configuration artifacts. The folder location for the script is set to "env". This job only runs if the commit reference name matches the pattern ^release\/.* and if there are changes in the env/* files.
+
+## Publish Snapshot Config-Artefact
+Publish Snapshot Config-Artefact: Similar to the "Publish Snapshot Infra-Artefact" job, but it's intended for configuration artifacts. The folder location for the script is set to "env". This job never runs if the commit reference name matches the pattern ^release\/.*. It only runs if the commit reference name does not match that pattern and if there are changes in the env/* files.
+
+## release-job
+release-job: This job extends from .publish_artifacts and uses the release-cli Docker image. It checks if the ARTEFACT_VERSION environment variable is set. If it's not set, it prints an error message and exits. If it is set, it creates a release description and saves it to a file named release-description.md. The release description includes the artifact version and the change reference. This job creates a release with the name release-${ARTEFACT_VERSION}, the tag name v${ARTEFACT_VERSION}, and the commit SHA as the reference. This job depends on the "Build variables", "Publish Config-Artefact", and "Publish Infra-Artefact" jobs. It only runs if the commit reference name matches the pattern ^release\/.*.
