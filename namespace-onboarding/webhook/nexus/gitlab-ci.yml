@@ -83,5 +83,7 @@ release-job:
   needs:
     - job: Publish Infra-Artefact
       optional: true
+    - job: .publish_artifacts
+      artefact: true
   rules:
     - if: $CI_COMMIT_REF_NAME =~ /^release\/.*/

@@ -97,3 +97,23 @@ function ProcessEnvVars {
 # $apiEndpoint = https://azurewebsites.net/api/aksnamespaceroleassign
 
 # ProcessEnvVars -regionData $regionData -accessToken $accessToken -apiEndpoint $apiEndpoint
+
+# # Example of setting environment variables (this would be part of your AddSPNToEnvironment logic)
+# [System.Environment]::SetEnvironmentVariable("SPN_CLIENT_ID", "your_client_id", [System.EnvironmentVariableTarget]::Process)
+# [System.Environment]::SetEnvironmentVariable("SPN_TENANT_ID", "your_tenant_id", [System.EnvironmentVariableTarget]::Process)
+# [System.Environment]::SetEnvironmentVariable("SPN_SECRET", "your_secret", [System.EnvironmentVariableTarget]::Process)
+# [System.Environment]::SetEnvironmentVariable("SPN_SCOPE", "your_scope", [System.EnvironmentVariableTarget]::Process)
+# [System.Environment]::SetEnvironmentVariable("SPN_REQUEST_ACCESS_TOKEN_URI", "your_request_access_token_uri", [System.EnvironmentVariableTarget]::Process)
+
+# # Main script
+# $clientId = [System.Environment]::GetEnvironmentVariable("SPN_CLIENT_ID", [System.EnvironmentVariableTarget]::Process)
+# $tenantId = [System.Environment]::GetEnvironmentVariable("SPN_TENANT_ID", [System.EnvironmentVariableTarget]::Process)
+# $secret = [System.Environment]::GetEnvironmentVariable("SPN_SECRET", [System.EnvironmentVariableTarget]::Process)
+# $scope = [System.Environment]::GetEnvironmentVariable("SPN_SCOPE", [System.EnvironmentVariableTarget]::Process)
+# $requestAccessTokenUri = [System.Environment]::GetEnvironmentVariable("SPN_REQUEST_ACCESS_TOKEN_URI", [System.EnvironmentVariableTarget]::Process)
+
+# $accessToken = Get-AccessTokenForFunction -clientid $clientId -tenantID $tenantId -secret $secret -scope $scope -requestAccessTokenUri $requestAccessTokenUri
+# $apiEndpoint = "https://azurewebsites.net/api/aksnamespaceroleassign"
+
+# # Assuming $regionData is defined somewhere in your script or passed as an argument
+# ProcessEnvVars -regionData $regionData -accessToken $accessToken -apiEndpoint $apiEndpoint

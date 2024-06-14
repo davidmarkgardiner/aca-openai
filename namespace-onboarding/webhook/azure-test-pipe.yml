@@ -1,43 +1,24 @@
-trigger: none
-
 stages:
-- stage: Checkout
-  jobs:
-  - job: Checkout
-    steps:
-    - checkout: self
-    - script: |
-        git checkout -b new-branch
+  - build
+  - release
 
-- stage: CreateFile
-  jobs:
-  - job: CreateFile
-    steps:
-    - script: |
-        echo "This is a new file" > newfile.txt
+create_tarball:
+  stage: build
+  script:
+    - tar -czvf release-${CI_COMMIT_REF_NAME}-${CI_COMMIT_SHORT_SHA}.tar.gz .
+  artifacts:
+    paths:
+      - release-${CI_COMMIT_REF_NAME}-${CI_COMMIT_SHORT_SHA}.tar.gz
+  only:
+    - /^release.*$/
+    - tags
 
-- stage: CommitPush
-  jobs:
-  - job: CommitPush
-    steps:
-    - script: |
-        git config --global user.email "you@example.com"
-        git config --global user.name "Your Name"
-        git add .
-        git commit -m "Add new file"
-        git push origin new-branch
-
-- stage: CreatePR
-  jobs:
-  - job: CreatePR
-    steps:
-    - task: CreatePullRequest@1
-      inputs:
-        repoType: 'Azure DevOps'
-        azureDevOpsServiceConnection: 'MyServiceConnection'
-        repository: 'MyRepo'
-        sourceBranch: 'new-branch'
-        targetBranch: 'main'
-        title: 'New PR from Pipeline'
-        description: 'This PR was created by an Azure DevOps Pipeline'
-        linkWorkItems: false
+create_release:
+  stage: release
+  script:
+    - 'curl --header "PRIVATE-TOKEN: $GITLAB_PRIVATE_TOKEN" --data "name=Release ${CI_COMMIT_REF_NAME} ${CI_COMMIT_SHORT_SHA}" --data "tag_name=${CI_COMMIT_REF_NAME}" --data "description=Release of ${CI_COMMIT_REF_NAME} ${CI_COMMIT_SHORT_SHA}" --data "assets[links][][name]=release-artifact" --data "assets[links][][url]=${CI_PROJECT_URL}/-/jobs/${CI_JOB_ID}/artifacts/download" "${CI_PROJECT_URL}/api/v4/projects/${CI_PROJECT_ID}/releases"'
+  dependencies:
+    - create_tarball
+  only:
+    - /^release.*$/
+    - tags
