@@ -117,3 +117,31 @@ function ProcessEnvVars {
 
 # # Assuming $regionData is defined somewhere in your script or passed as an argument
 # ProcessEnvVars -regionData $regionData -accessToken $accessToken -apiEndpoint $apiEndpoint
+
+# Assuming AddSPNToEnvironment has already placed the secret in an environment variable or a secure location accessible by this script
+
+function Get-AccessTokenForFunction {
+    param(
+        $clientid,
+        $scope,
+        $tenantID,
+        $requestAccessTokenUri
+    )
+    
+    # Retrieve the secret securely, for example, from an environment variable set by AddSPNToEnvironment
+    $secret = $env:SPN_SECRET
+
+    $body = "grant_type=client_credentials&client_id=$clientid&client_secret=$secret&scope=$scope"
+    $accessTokenData = irm -method Post -uri $requestAccessTokenUri -Body $body -ContentType 'application/x-www-form-urlencoded'
+    if ($accessTokenData.access_token) {
+        return $accessTokenData.access_token
+    } else {
+        throw "Failed to get access token"
+    }
+}
+
+# Main script execution example
+# $clientid, $scope, $tenantID, and $requestAccessTokenUri need to be defined or passed as parameters
+# $accessToken = Get-AccessTokenForFunction -clientid $clientid -scope $scope -tenantID $tenantID -requestAccessTokenUri $requestAccessTokenUri
+# $apiEndpoint = "https://azurewebsites.net/api/aksnamespaceroleassign"
+# ProcessEnvVars -regionData $regionData -accessToken $accessToken -apiEndpoint $apiEndpoint

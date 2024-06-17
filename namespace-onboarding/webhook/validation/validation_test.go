@@ -5,6 +5,7 @@ import (
 	"os"
 	"regexp"
 	"testing"
+	"strings"
 )
 
 type Data struct {
@@ -97,7 +98,7 @@ func TestJsonValidationAllFiles(t *testing.T) {
 
 // verify that data.Action is one of the allowed values ("Add", "Remove", or "Update")
 func isValidAction(action string) bool {
-switch action {
+switch strings.ToLower(action) {
 case "add", "remove", "update":
 	return true
 default:
@@ -108,17 +109,18 @@ default:
 
 // verify that data.Swci starts with "at" and is followed by exactly 5 numbers,
 func isValidSwci(swci string) bool {
-match, err := regexp.MatchString(`^at\d{5}$`, swci)
-if err != nil {
-	fmt.Println("Error while matching regex:", err)
-	return false
-}
-if match {
-	return true
-} else {
-	fmt.Printf("Invalid Swci: %s. It should start with 'at' followed by exactly 5 numbers.\n", swci)
-	return false
-}
+    lowerSwci := strings.ToLower(swci) // Convert swci to lowercase
+    match, err := regexp.MatchString(`^at\d{5}$`, lowerSwci)
+    if err != nil {
+        fmt.Println("Error while matching regex:", err)
+        return false
+    }
+    if match {
+        return true
+    } else {
+        fmt.Printf("Invalid Swci: %s. It should start with 'at' followed by exactly 5 numbers.\n", swci)
+        return false
+    }
 }
 
 // verify that data.Suffix is a maximum of 8 characters and contains only numbers, letters, and hyphens
@@ -135,7 +137,7 @@ if match {
 
 // verify that data.Region is one of the allowed values ("westeurope", "eastus2", or "centralus")
 func isValidRegion(region string) bool {
-switch region {
+switch strings.ToLower(region) {
 case "westeurope", "eastus2", "centralus":
 	fmt.Printf("Region: %s\n", region)
 	return true
@@ -146,7 +148,7 @@ default:
 }
 func isValidOpEnvironment(opEnvironment string) bool {
 // verify that data.OPEnvironment is one of the allowed values ("dev", "prod", "te1", or "te2"),
-switch opEnvironment {
+switch strings.ToLower(opEnvironment) {
 case "dev", "prod", "te1", "te2":
 	fmt.Printf("OPEnvironment: %s\n", opEnvironment)
 	return true
