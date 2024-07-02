@@ -80,7 +80,8 @@ func main() {
             }
             clustername := os.Getenv("clustername")
             // Read the kustomization.yaml file
-            data, err = os.ReadFile("../environment/" + item.Region + "/" + clustername + "/kustomization.yaml")
+            data, err = os.ReadFile("../environment/" + item.OpEnvironment + "/" + item.Region + "/" + clustername + "/kustomization.yaml")
+            // data, err = os.ReadFile("../environment/" + item.Region + "/" + clustername + "/kustomization.yaml")
             if err != nil {
                 log.Fatalf("Failed to read kustomization.yaml: %v", err)
             }
@@ -125,7 +126,8 @@ func main() {
             }
 
             // Write the updated YAML back to the kustomization.yaml file
-            err = os.WriteFile("../environment/"+item.Region+"/"+clustername+"/kustomization.yaml", data, 0644)
+            err = os.WriteFile("../environment/"+item.OpEnvironment+"/"+item.Region+"/"+clustername+"/kustomization.yaml", data, 0644)
+            // err = os.WriteFile("../environment/"+item.Region+"/"+clustername+"/kustomization.yaml", data, 0644)
             if err != nil {
                 log.Fatalf("Failed to write to kustomization.yaml: %v", err)
             }

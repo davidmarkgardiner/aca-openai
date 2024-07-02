@@ -175,11 +175,13 @@ func main() {
 		item.AppSubDomain = item.Swci + "-" + item.OpEnvironment + "-" + item.Suffix
 	}
 	// fmt.Println("item:", item)
-	dir := fmt.Sprintf("../environment/%s/%s/%s-%s", item.Region, clustername, item.Swci, item.Suffix)
+	dir := fmt.Sprintf("../environment/%s/%s/%s/%s-%s", item.OpEnvironment, item.Region, clustername, item.Swci, item.Suffix)
+	// dir := fmt.Sprintf("../environment/%s/%s/%s-%s", item.Region, clustername, item.Swci, item.Suffix)
 	fmt.Println("dir:", dir)
 	if item.Action == "add" || item.Action == "modify" {
 		// Directory to create for the environment
-		dir := fmt.Sprintf("../environment/%s/%s/%s-%s", item.Region, clustername, item.Swci, item.Suffix)
+		dir := fmt.Sprintf("../environment/%s/%s/%s/%s-%s", item.OpEnvironment, item.Region, clustername, item.Swci, item.Suffix)
+		// dir := fmt.Sprintf("../environment/%s/%s/%s-%s", item.Region, clustername, item.Swci, item.Suffix)
 
 		// Create the directory
 		err = os.MkdirAll(dir, os.ModePerm)
@@ -277,7 +279,8 @@ func main() {
 		// }
 	} else if item.Action == "remove" {
 		// Directory for the environment to be removed
-		dir := fmt.Sprintf("../environment/%s/%s/%s-%s", item.Region, clustername, item.Swci, item.Suffix)
+		dir := fmt.Sprintf("../environment/%s/%s/%s/%s-%s", item.OpEnvironment, item.Region, clustername, item.Swci, item.Suffix)
+		// dir := fmt.Sprintf("../environment/%s/%s/%s-%s", item.Region, clustername, item.Swci, item.Suffix)
 
 		// Read the delete kustomization file
 		data, _ := os.ReadFile("kustomize/overlay/kustomization-delete.yaml")
