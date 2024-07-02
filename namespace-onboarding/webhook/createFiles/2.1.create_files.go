@@ -146,7 +146,9 @@ func main() {
 	item.AllowAccessFromNS = strings.ToLower(item.AllowAccessFromNS)
 	item.RequestedBy = strings.ToLower(item.RequestedBy)
 	item.OpEnvironment = strings.ToLower(item.OpEnvironment)
-
+	if item.OpEnvironment == "test" {
+		item.OpEnvironment = "dev"
+	}
 	// if item is lowercase, convert to uppercase
 	item.BillingReference = strings.ToUpper(item.BillingReference)
 	item.Source = strings.ToUpper(item.Source)

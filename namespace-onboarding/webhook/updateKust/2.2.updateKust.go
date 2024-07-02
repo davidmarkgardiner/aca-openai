@@ -49,6 +49,10 @@ func main() {
                 OpEnvironment:          os.Getenv("OP_ENVIRONMENT"),
             }
 
+            item.OpEnvironment = strings.ToLower(item.OpEnvironment)
+            if item.OpEnvironment == "test" {
+                item.OpEnvironment = "dev"
+            }
             var data []byte
             var err error
             // Construct the filename based on the region
