@@ -95,7 +95,8 @@ func main() {
 	var data []byte
 	var err error
 	// Construct the filename based on the region
-	filename := fmt.Sprintf("../region/%s.env", item.Region)
+	// filename := fmt.Sprintf("../region/%s.env", item.Region)
+	filename := fmt.Sprintf("../region/%s/%s.env", item.OpEnvironment, item.Region)
 	// filename := filename1
 	// Read the .env file
 	data, err = os.ReadFile(filename)
