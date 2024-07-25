@@ -1,0 +1,374 @@
+stages:
+
+  # - cluster_selection
+
+  - data_validation
+
+  - update_kust # this contains both create_ns + update_kust
+
+  - rbac_role_binding
+
+  - app_test
+
+  # - build
+
+  - publish
+
+  - release
+
+ 
+
+# default:
+
+#   image: container-registry.ubs.net/azure-cli:2.57.0
+
+#   tags:
+
+#     - kubernetes, devcloud-kubernetes
+
+#   before_script:
+
+#     - az login --service-principal --username ${ARM_CLIENT_ID} --password ${ARM_CLIENT_SECRET} --tenant $SP_TENANT_ID --output none
+
+#     # - az account set --subscription $SUBSCRIPTION --output none
+
+#     - az account show
+
+#     - set -euo pipefail
+
+ 
+
+# # Secrets pulled from EVA in order to authenticate with Azure.
+
+# .get-vault-secrets:
+
+#   id_tokens:
+
+#     VAULT_ID_TOKEN:
+
+#       aud: "${VAULT_SERVER_URL}"
+
+#   secrets:
+
+#     ARM_CLIENT_ID:
+
+#       vault: "deploy/aad/SVC_DEV_${SWCI_ID}_deploy/client-id@secret"
+
+#       file: false
+
+#     ARM_CLIENT_SECRET:
+
+#       vault: "deploy/aad/SVC_DEV_${SWCI_ID}_deploy/secret@secret"
+
+#       file: false
+
+# # variables:
+
+# #   no_proxy: "*azurewebsites.net"
+
+# #   NO_PROXY: "*azurewebsites.net"
+
+ 
+
+# BASH cluster selection:
+
+#   stage: cluster_selection
+
+#   image: poc-container-registry.ubs.net/rhel-go-terratest:1.3.8
+
+#   script:
+
+#     - sh kustomize/clusterSelector.sh
+
+#   only:
+
+#     changes:
+
+#       - data2/*.json
+
+#     refs:
+
+#       - feature/kustomize
+
+#   artifcats:
+
+#     paths:
+
+#       output.txt
+
+ 
+
+Go Validate Data Logic:
+
+  stage: data_validation
+
+  image: poc-container-registry.ubs.net/rhel-go-terratest:1.3.8
+
+  script:
+
+    # - selectedCluster=$(awk 'NR=1' output.txt)
+
+    # - selectedDnsZoneName=$(awk 'NR=2' output.txt)
+
+    - sh kustomize/data_validation.sh
+
+  only:
+
+    changes:
+
+      - data2/*.json
+
+    refs:
+
+      - feature/kustomize
+
+      # - dg/feature/resourceQouta
+
+ 
+
+Go Update Kustomization file:
+
+  stage: update_kust
+
+  image: poc-container-registry.ubs.net/rhel-go-terratest:1.3.8
+
+  script:
+
+    - |
+
+      ## SETUP
+
+      # wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/bin/yq && chmod +x /usr/bin/yq
+
+      # yq --version
+
+      # apk add jq
+
+ 
+
+      # selectedCluster=$(awk 'NR=1' output.txt)
+
+      # selectedDnsZoneName=$(awk 'NR=2' output.txt)
+
+      chmod +x ./kustomize/update_kust.sh
+
+ 
+
+      echo -e "/n/n/n"
+
+     
+
+      git config --global user.email ${CI_PROJECT_TITLE}@ubs.com
+
+      git config --global user.name "${CI_PROJECT_NAMESPACE_ID} "
+
+      git branch -va
+
+     
+
+      git checkout ${CI_COMMIT_BRANCH}
+
+      git branch -va
+
+ 
+
+      ## EXECUTE
+
+      #echo -e "\n \n == Generate AT code, configuration and structure =="
+
+      echo -e "\n\n\n\n == Update files"
+
+      ./kustomize/update_kust.sh
+
+     
+
+      echo -e "\n\n\n\n== Make Commits"
+
+      if git status | grep -q 'nothing to commit'; then
+
+        echo "No changes to commit"
+
+      else
+
+        echo "Changes to be added"
+
+        git add .
+
+        git commit -m "Pipeline id - ${CI_PIPELINE_ID}, Pipeline url - ${CI_PIPELINE_URL}, Job url - ${CI_JOB_URL}"
+
+        echo "== " $CI_REPOSITORY_URL
+
+        git push https://gitlab-ci-token:${srePipelineAccess}@devcloud.ubs.net/ubs-ag/gt/ise/distributed-hosting/azure-kubernetes-service/akseng/managed-aks-namespace-sre.git
+
+      fi
+
+  only:
+
+    changes:
+
+      - data2/*.json
+
+    refs:
+
+      - feature/kustomize
+
+      # - dg/feature/resourceQouta
+
+ 
+
+rbac_role_binding:
+
+  image: container-registry.ubs.net/powershell:lts-alpine-3.14
+
+  stage: rbac_role_binding
+
+  script:
+
+    - pwsh -File ./kustomize/rbac_role_binding.ps1
+
+  only:
+
+    changes:
+
+      - data2/*.json
+
+    refs:
+
+      - feature/kustomize
+
+      # - dg/feature/resourceQouta
+
+ 
+
+Go App Test:
+
+  stage: app_test
+
+  image: poc-container-registry.ubs.net/rhel-go-terratest:1.3.8
+
+  script:
+
+    # - selectedCluster=$(awk 'NR=1' output.txt)
+
+    # - selectedDnsZoneName=$(awk 'NR=2' output.txt)
+
+    - sh kustomize/app_test.sh
+
+  only:
+
+    changes:
+
+      - data2/*.json
+
+    refs:
+
+      - feature/kustomize
+
+      # - dg/feature/resourceQouta
+
+ 
+
+.publish_artifacts:
+  image: container-registry.ubs.net/ubs/deploy/azure-cli:latest
+  # image: container-registry.ubs.net/gitlab-org/release-cli:latest
+  stage: publish
+  when: manual
+  script:
+    # - echo $(cat ./version.txt) > artefact_version.txt
+    - ARTEFACT_VERSION=$(cat ./version.txt)
+    - echo $ARTEFACT_VERSION
+    # - export CI_COMMIT_TAG=${CI_COMMIT_TAG}
+    # - echo "$CI_COMMIT_TAG"
+  # artifacts:
+  #   paths:
+  #     - artefact_version.txt
+
+ 
+
+Publish Config-Artefact:
+  extends:
+    - .publish_artifacts
+  script:
+    - |
+      ARTEFACT_VERSION=$(cat ./version.txt)
+      echo $ARTEFACT_VERSION
+      touch build.env
+      echo "ARTEFACT_VERSION=$ARTEFACT_VERSION" | tee -a build.env
+      # export "ARTEFACT_VERSION"  > build.env
+      cat build.env
+      chmod +x ./scripts/publish_artifacts.sh
+      ./scripts/publish_artifacts.sh --folder-location "." --is-release "true" --nexus-creds $NEXUS_CREDS
+      [ $? -eq 0 ] && echo "[SUCCESS] Infra release artefact created and published to nexus" || echo "[ERROR]: Failed to create and publish infra release artefact"
+  variables:
+    UBSCTL_FINGERPRINT_ARTIFACTS: "target/*.tar.gz"
+  # rules:
+  #   - if: '$CI_COMMIT_REF_NAME =~ /^release\/.*/ || $CI_COMMIT_TAG =~ /^release\/.*/'
+  #   # - if: '$CI_COMMIT_REF_NAME =~ /^feat\/.*/ || $CI_COMMIT_TAG =~ /^feat\/.*/'
+  #     changes:
+  #       - '*'
+  only:
+    - /^release.*$/
+    - tags
+  artifacts:
+    reports:
+      dotenv: build.env
+
+ 
+
+Publish Snapshot Config-Artefact:
+  extends:
+    - .publish_artifacts
+  script:
+    - |
+      ARTEFACT_VERSION=$(cat ./version.txt)
+      echo $ARTEFACT_VERSION
+      chmod +x ./scripts/publish_artifacts.sh
+      ./scripts/publish_artifacts.sh --folder-location "." --is-release "false" --nexus-creds $NEXUS_CREDS
+      [ $? -eq 0 ] && echo "[SUCCESS] Infra release artefact created and published to nexus" || echo "[ERROR]: Failed to create and publish infra release artefact"
+  rules:
+    - if: '$CI_COMMIT_REF_NAME =~ /^release\/.*/ || $CI_COMMIT_TAG =~ /^release\/.*/'
+    # - if: '$CI_COMMIT_REF_NAME =~ /^feat\/.*/ || $CI_COMMIT_TAG =~ /^feat\/.*/'
+      when: never
+
+    # - if: $CI_COMMIT_REF_NAME !~ /^release\/.*/
+
+    #   changes:
+
+    #     - '*'
+
+ 
+
+# Job to create a release
+
+release-job:
+  stage: release
+  extends:
+    - .publish_artifacts
+  image: container-registry.ubs.net/gitlab-org/release-cli:latest
+  cache: {}
+  script:
+  - |
+    echo "Creating release"
+    # ARTEFACT_VERSION=$(cat build.env)
+    echo ARTEFACT_VERSION = $ARTEFACT_VERSION
+    cat << EOF | tee release-description.md
+    release v${ARTEFACT_VERSION}
+    Change-ref: ${CHANGE_REF}
+    EOF
+  artifacts:
+    paths:
+      - release-description.md
+
+  release:
+    name: "release-${ARTEFACT_VERSION}"
+    description: release-description.md
+    tag_name: "v${ARTEFACT_VERSION}"
+    ref: "${CI_COMMIT_SHA}"
+  needs:
+    # - job: Publish Config-Artefact
+    #   optional: true
+    - job: Publish Config-Artefact
+      atifacts: true
+  rules:
+    - if: '$CI_COMMIT_REF_NAME =~ /^release\/.*/ || $CI_COMMIT_TAG =~ /^release\/.*/'
+    # - if: '$CI_COMMIT_REF_NAME =~ /^feat\/.*/ || $CI_COMMIT_TAG =~ /^feat\/.*/'

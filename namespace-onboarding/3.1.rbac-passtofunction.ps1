@@ -15,7 +15,8 @@ foreach ($jsonfile in $jsonFiles) {
     # Write-Host "region: $region"
     # Assume $item.Region is already defined
     
-    $filename = "region/$region.env"
+    
+    $filename = "region/$opEnvironment/$region.env"
 
     # Read the .env file
     $data = Get-Content $filename -ErrorAction Stop

@@ -1,0 +1,201 @@
+parameters:
+
+- name: action
+
+  type: string
+
+- name: swci
+
+  type: string
+
+- name: suffix
+
+  type: string
+
+- name: region
+
+  type: string
+
+- name: opEnvironment
+
+  type: string
+
+- name: resourceQuotaCPU  
+
+  type: string
+
+- name: resourceQuotaMemoryGB
+
+  type: string
+
+# - name: resourceQuotaStorageGB
+
+#   type: string
+
+- name: billingReference
+
+  type: string
+
+- name: source
+
+  type: string
+
+- name: swcID
+
+  type: string
+
+- name: dataClassification
+
+  type: string
+
+# - name: appSubdomain
+
+#   type: string
+
+# - name: allowAccessFromNS
+
+#   type: string
+
+- name: requestedBy
+
+  type: string
+
+- name: serviceConnectionName
+
+  type: string
+
+  default: ''
+
+ 
+
+stages:
+
+- stage: RBACRoleBinding
+
+  displayName: Bind RBAC Roles to Cluster and Namespace
+
+  variables:
+
+    serviceConnectionName: ${{ parameters.serviceConnectionName }}
+
+    action: ${{ parameters.action }}
+
+    swci: ${{ parameters.swci }}
+
+    suffix: ${{ parameters.suffix }}
+
+    region: ${{ parameters.region }}
+
+    opEnvironment: ${{ parameters.opEnvironment }}
+
+    resourceQuotaCPU: ${{ parameters.resourceQuotaCPU }}
+
+    resourceQuotaMemoryGB: ${{ parameters.resourceQuotaMemoryGB }}
+
+    # resourceQuotaStorageGB: ${{ parameters.resourceQuotaStorageGB }}
+
+    billingReference: ${{ parameters.billingReference }}
+
+    source: ${{ parameters.source }}
+
+    swcID: ${{ parameters.swcID }}
+
+    dataClassification: ${{ parameters.dataClassification }}
+
+    # appSubdomain: ${{ parameters.appSubdomain }}
+
+    # allowAccessFromNS: ${{ parameters.allowAccessFromNS }}
+
+    requestedBy: ${{ parameters.requestedBy }}
+
+   
+
+  jobs:
+
+  - job: rbacRoleBinding
+
+    steps:
+
+      - script: |
+
+          echo "##vso[task.setvariable variable=ACTION]${{ variables.action }}"
+
+          echo "##vso[task.setvariable variable=SWCI]${{ variables.swci }}"
+
+          echo "##vso[task.setvariable variable=SUFFIX]${{ variables.suffix }}"
+
+          echo "##vso[task.setvariable variable=REGION]${{ variables.region }}"
+
+          echo "##vso[task.setvariable variable=OP_ENVIRONMENT]${{ variables.opEnvironment }}"
+
+          echo "##vso[task.setvariable variable=RESOURCE_QUOTA_CPU]${{ variables.resourceQuotaCPU }}"
+
+          echo "##vso[task.setvariable variable=RESOURCE_QUOTA_MEMORY_GB]${{ variables.resourceQuotaMemoryGB }}"
+
+          # echo "##vso[task.setvariable variable=RESOURCE_QUOTA_STORAGE_GB]${{ variables.resourceQuotaStorageGB }}"
+
+          echo "##vso[task.setvariable variable=BILLING_REFERENCE]${{ variables.billingReference }}"
+
+          echo "##vso[task.setvariable variable=SOURCE]${{ variables.source }}"
+
+          echo "##vso[task.setvariable variable=SWC_ID]${{ variables.swcID }}"
+
+          echo "##vso[task.setvariable variable=DATA_CLASSIFICATION]${{ variables.dataClassification }}"
+
+          # echo "##vso[task.setvariable variable=APP_SUBDOMAIN]${{ variables.appSubdomain }}"
+
+          # echo "##vso[task.setvariable variable=ALLOW_ACCESS_FROM_NS]${{ variables.allowAccessFromNS }}"
+
+          echo "##vso[task.setvariable variable=REQUESTED_BY]${{ variables.requestedBy }}"
+
+      - script: |
+
+            chmod +x '$(System.DefaultWorkingDirectory)/rbacRoleBinding/rbacRoleBinding.ps1'
+
+        displayName: 'chmod +x rbacRoleBinding.ps1'
+
+     
+
+      - task: AzureCLI@2
+
+        name: prepareVariables
+
+        inputs:
+
+          azureSubscription: ${{ parameters.serviceConnectionName }} # string. Alias: connectedServiceNameARM. Required. Azure Resource Manager connection.
+
+          scriptType: bash # 'ps' | 'pscore' | 'batch' | 'bash'. Required. Script Type.
+
+          scriptLocation: 'inlineScript' # 'inlineScript' | 'scriptPath'. Required. Script Location. Default: scriptPath.
+
+          addSpnToEnvironment: true
+
+          inlineScript: |
+
+            echo "##vso[task.setvariable variable=ARM_CLIENT_ID]$servicePrincipalId"
+
+            echo ARM_CLIENT_ID=$(ARM_CLIENT_ID)
+
+            echo "##vso[task.setvariable variable=ARM_CLIENT_SECRET]$servicePrincipalKey"
+
+            echo ARM_CLIENT_SECRET=$(ARM_CLIENT_SECRET)
+
+            echo "##vso[task.setvariable variable=ARM_TENANT_ID]$tenantId"
+
+            echo ARM_TENANT_ID=$(ARM_TENANT_ID)
+
+ 
+
+      - task: PowerShell@2
+
+        inputs:
+
+          filePath: 'rbacRoleBinding/rbacRoleBinding.ps1'
+
+          azureSubscription: ${{ parameters.serviceConnectionName }}
+
+          addSpnToEnvironment: false
+
+        env:
+
+          SCOPE_ID: '3b56e8ee-15a1-47bf-bb03-0aa5aa68a8bc/.default'

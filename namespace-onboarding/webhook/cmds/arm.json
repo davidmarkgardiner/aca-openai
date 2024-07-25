@@ -1,0 +1,3 @@
+"privateLinkServiceId": "/subscriptions/{subscription-id}/resourceGroups/{resource-group-name}/providers/Microsoft.Dashboard/grafana/{azureManagedGrafanaNameWithPrefix}"
+
+"id": "/subscriptions/{subscription-id}/resourceGroups/{resource-group-name}/providers/Microsoft.Network/privateEndpoints/{privateEndpointName}/privateLinkServiceConnections/{privateEndpointName}"

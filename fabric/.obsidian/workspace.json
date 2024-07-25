@@ -18,8 +18,29 @@
                 "source": false
               }
             }
+          },
+          {
+            "id": "44d2c9c292f0febf",
+            "type": "leaf",
+            "state": {
+              "type": "release-notes",
+              "state": {
+                "currentVersion": "1.5.12"
+              }
+            }
+          },
+          {
+            "id": "a881aa230a16dd73",
+            "type": "leaf",
+            "state": {
+              "type": "release-notes",
+              "state": {
+                "currentVersion": "1.6.5"
+              }
+            }
           }
-        ]
+        ],
+        "currentTab": 2
       }
     ],
     "direction": "vertical"
@@ -146,7 +167,7 @@
       "command-palette:Open command palette": false
     }
   },
-  "active": "20f87e1c47e2f2ef",
+  "active": "ceacc197f3e4f63a",
   "lastOpenFiles": [
     "2024-06-06-explain_publish_artifcat_script.md",
     "2024-06-06-script.md",

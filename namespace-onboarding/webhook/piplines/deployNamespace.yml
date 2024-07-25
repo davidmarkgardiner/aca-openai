@@ -1,0 +1,316 @@
+parameters:
+
+- name: action
+
+  type: string
+
+- name: swci
+
+  type: string
+
+- name: suffix
+
+  type: string
+
+- name: region
+
+  type: string
+
+- name: opEnvironment
+
+  type: string
+
+- name: resourceQuotaCPU  
+
+  type: string
+
+- name: resourceQuotaMemoryGB
+
+  type: string
+
+# - name: resourceQuotaStorageGB
+
+#   type: string
+
+- name: billingReference
+
+  type: string
+
+- name: source
+
+  type: string
+
+- name: swcID
+
+  type: string
+
+- name: dataClassification
+
+  type: string
+
+# - name: appSubdomain
+
+#   type: string
+
+# - name: allowAccessFromNS
+
+#   type: string
+
+- name: requestedBy
+
+  type: string
+
+- name: serviceConnectionName
+
+  type: string
+
+  default: ''
+
+ 
+
+stages:
+
+- stage: deployNamespace
+
+  displayName: Deploy Namespace via Gitops
+
+  variables:
+
+    serviceConnectionName: ${{ parameters.serviceConnectionName }}
+
+    action: ${{ parameters.action }}
+
+    swci: ${{ parameters.swci }}
+
+    suffix: ${{ parameters.suffix }}
+
+    region: ${{ parameters.region }}
+
+    opEnvironment: ${{ parameters.opEnvironment }}
+
+    resourceQuotaCPU: ${{ parameters.resourceQuotaCPU }}
+
+    resourceQuotaMemoryGB: ${{ parameters.resourceQuotaMemoryGB }}
+
+    # resourceQuotaStorageGB: ${{ parameters.resourceQuotaStorageGB }}
+
+    billingReference: ${{ parameters.billingReference }}
+
+    source: ${{ parameters.source }}
+
+    swcID: ${{ parameters.swcID }}
+
+    dataClassification: ${{ parameters.dataClassification }}
+
+    # appSubdomain: ${{ parameters.appSubdomain }}
+
+    # allowAccessFromNS: ${{ parameters.allowAccessFromNS }}
+
+    requestedBy: ${{ parameters.requestedBy }}
+
+  jobs:
+
+  - job:
+
+    displayName: "deployNamespace"
+
+    steps:
+
+      - checkout: self
+
+        persistCredentials: true
+
+        clean: true
+
+ 
+
+      - task: Bash@3
+        inputs:
+          targetType: 'inline'
+          script: |
+            curl -k -o code.tar.gz $CODE_PACKAGE$CODE_VERSION
+            mkdir -p $(System.DefaultWorkingDirectory)
+            tar -xvzf code.tar.gz -C $(System.DefaultWorkingDirectory)
+            find $(System.DefaultWorkingDirectory) -type f -name "*.sh" -exec sed -i 's/\r//' {} \;
+            ls -al $(System.DefaultWorkingDirectory)
+            
+      - task: PublishPipelineArtifact@1
+        inputs:
+          targetPath: '$(System.DefaultWorkingDirectory)'
+          artifact: 'nexus_artifact'
+          publishLocation: 'pipeline'
+ 
+      - task: DownloadPipelineArtifact@2
+        inputs:
+            buildType: 'current'
+            artifactName: 'nexus_artifact'
+            targetPath: '$(Pipeline.Workspace)'
+           
+
+      - script: |
+          git config --global user.email you@example.com
+          git config --global user.name "Your Name"
+          git checkout -b $(branch_name)
+          # git checkout -b $(Build.SourceBranch)
+        displayName: 'Create new branch'
+
+      - script: |
+          echo "##vso[task.setvariable variable=ACTION]${{ variables.action }}"
+
+          echo "##vso[task.setvariable variable=SWCI]${{ variables.swci }}"
+
+          echo "##vso[task.setvariable variable=SUFFIX]${{ variables.suffix }}"
+
+          echo "##vso[task.setvariable variable=REGION]${{ variables.region }}"
+
+          echo "##vso[task.setvariable variable=OP_ENVIRONMENT]${{ variables.opEnvironment }}"
+
+          echo "##vso[task.setvariable variable=RESOURCE_QUOTA_CPU]${{ variables.resourceQuotaCPU }}"
+
+          echo "##vso[task.setvariable variable=RESOURCE_QUOTA_MEMORY_GB]${{ variables.resourceQuotaMemoryGB }}"
+
+          # echo "##vso[task.setvariable variable=RESOURCE_QUOTA_STORAGE_GB]${{ variables.resourceQuotaStorageGB }}"
+
+          echo "##vso[task.setvariable variable=BILLING_REFERENCE]${{ variables.billingReference }}"
+
+          echo "##vso[task.setvariable variable=SOURCE]${{ variables.source }}"
+
+          echo "##vso[task.setvariable variable=SWC_ID]${{ variables.swcID }}"
+
+          echo "##vso[task.setvariable variable=DATA_CLASSIFICATION]${{ variables.dataClassification }}"
+
+          # echo "##vso[task.setvariable variable=APP_SUBDOMAIN]${{ variables.appSubdomain }}"
+
+          # echo "##vso[task.setvariable variable=ALLOW_ACCESS_FROM_NS]${{ variables.allowAccessFromNS }}"
+
+          echo "##vso[task.setvariable variable=REQUESTED_BY]${{ variables.requestedBy }}"
+
+          # export ACTION="add"
+
+          # export SWCI="at66666"
+
+          # export SUFFIX="poc1"
+
+          # export REGION="westeurope"
+
+          # export OP_ENVIRONMENT="dev"
+
+          # export RESOURCE_QUOTA_CPU="0.5"
+
+          # export RESOURCE_QUOTA_MEMORY_GB="3"
+
+          # export RESOURCE_QUOTA_STORAGE_GB="99"
+
+          # export BILLING_REFERENCE="AB-BC-ABCDE-ABCDE"
+
+          # export SOURCE="GSNOW"
+
+          # export SWC_ID="AA98765"
+
+          # export DATA_CLASSIFICATION="public"
+
+          # export APP_SUBDOMAIN="ob-test"
+
+          # export ALLOW_ACCESS_FROM_NS="at98765"
+
+          # export REQUESTED_BY=david.gardiner@ubs.com
+
+          # echo "##vso[task.setvariable variable=ACTION]${ACTION}"
+
+          # echo "##vso[task.setvariable variable=SWCI]${SWCI}"
+
+          # echo "##vso[task.setvariable variable=SUFFIX]${SUFFIX}"
+
+          # echo "##vso[task.setvariable variable=REGION]${REGION}"
+
+          # echo "##vso[task.setvariable variable=OP_ENVIRONMENT]${OP_ENVIRONMENT}"
+
+          # echo "##vso[task.setvariable variable=RESOURCE_QUOTA_CPU]${RESOURCE_QUOTA_CPU}"
+
+          # echo "##vso[task.setvariable variable=RESOURCE_QUOTA_MEMORY_GB]${RESOURCE_QUOTA_MEMORY_GB}"
+
+          # echo "##vso[task.setvariable variable=RESOURCE_QUOTA_STORAGE_GB]${RESOURCE_QUOTA_STORAGE_GB}"
+
+          # echo "##vso[task.setvariable variable=BILLING_REFERENCE]${BILLING_REFERENCE}"
+
+          # echo "##vso[task.setvariable variable=SOURCE]${SOURCE}"
+
+          # echo "##vso[task.setvariable variable=SWC_ID]${SWC_ID}"
+
+          # echo "##vso[task.setvariable variable=DATA_CLASSIFICATION]${DATA_CLASSIFICATION}"
+
+          # echo "##vso[task.setvariable variable=APP_SUBDOMAIN]${APP_SUBDOMAIN}"
+
+          # echo "##vso[task.setvariable variable=ALLOW_ACCESS_FROM_NS]${ALLOW_ACCESS_FROM_NS}"
+
+          # echo "##vso[task.setvariable variable=REQUESTED_BY]${REQUESTED_BY}"
+
+      - script: |
+
+          if [ -f Gopkg.toml ]; then
+
+              curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+
+              dep ensure
+
+          fi
+
+          go version
+
+        displayName: 'Get dependencies, then build'
+      - script: |
+            chmod -R 777 '$(System.DefaultWorkingDirectory)'
+        displayName: 'chmod DefaultWorkingDirectory'
+      - task: Go@0
+        displayName: 'Validate Data'
+        inputs:
+          command: 'test'
+          arguments: '-v validation_test.go' # Specify the path to your Go file
+          workingDirectory: '$(System.DefaultWorkingDirectory)/validation'
+
+      - task: Go@0
+        displayName: 'Create manifest files'
+        inputs:
+          command: 'run'
+          arguments: 'createFiles.go' # Specify the path to your Go file
+          workingDirectory: '$(System.DefaultWorkingDirectory)/createFiles'
+        # env:
+        #   BUILD_ID: '${Build.BuildId}'
+      - task: Go@0
+        displayName: 'Get dependencies for updateKust'
+        inputs:
+          command: 'get'
+          arguments: '-d'
+          workingDirectory: '$(System.DefaultWorkingDirectory)/updateKust'
+
+      - task: Go@0
+        displayName: 'Update Kustomization with folder name'
+        inputs:
+          command: 'run'
+          arguments: 'updateKust.go' # Specify the path to your Go file
+          workingDirectory: '$(System.DefaultWorkingDirectory)/updateKust'
+
+      - script: |
+          git add environment/*
+          git commit -m "Add new file"
+          # git pull -r origin $(branch_name)
+          git fetch
+          git push -u origin HEAD:$(branch_name)
+        displayName: 'Commit and push changes'
+        env:
+          GIT_CREDENTIALS: $(gitCredentials)
+
+      - task: AzurePowerShell@5
+        displayName: CommitCode and Create PR
+        enabled: true
+        name: commitCode
+        inputs:
+          azureSubscription: ARMSvc-AT39473-ba-ise-k8s-neu-dev
+          azurePowerShellVersion: LatestVersion
+          pwsh: true
+          scriptType: filePath
+          ScriptPath: './commitCode/commitCode.ps1'
+          ScriptArguments:
+            -branch $(Build.SourceBranch)  
+            -newBranch refs/heads/$(branch_name)
+            -commitMessage "updating kustomization files for gitops"

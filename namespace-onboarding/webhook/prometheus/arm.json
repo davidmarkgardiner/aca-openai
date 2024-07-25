@@ -1,0 +1,301 @@
+{
+
+    "$schema": https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#,
+
+    "contentVersion": "1.0.0.0",
+
+    "parameters": {
+
+        "azureMonitiorWorkspaceName": {
+
+            "defaultValue": "ubs-amw-test",
+
+            "type": "string"
+
+        },
+
+        "location": {
+
+            "defaultValue": "switzerlandnorth",
+
+            "type": "string"
+
+        },
+
+        "aksClusterReasourceId": {
+
+            "defaultValue": "ubs-aks-test",
+
+            "type": "string"
+
+        },
+
+        "clusterSubscriptionId": {
+
+            "defaultValue": "",
+
+            "type": "string"
+
+        },
+
+        "clusterResourceGroup": {
+
+            "defaultValue": "",
+
+            "type": "string"
+
+        },
+
+        "aksClusterName": {
+
+            "defaultValue": "",
+
+            "type": "string"
+
+        }
+
+    },
+
+    "variables": {
+
+        "clusterSubscriptionId": "[parameters('clusterSubscriptionId')]",
+
+        "clusterResourceGroup": "[parameters('aksClusterReasourceId')]",
+
+        "aksClusterName": "[parameters('aksClusterName')]",
+
+        "dceName": "[Concat('MSProm', '-','DCE', '-', parameters('location'), '-', variables('aksClusterName'))]",
+
+        "dcrName": "[Concat('MSProm', '-','DCR', '-', parameters('location'), '-', variables('aksClusterName'))]",
+
+        "dcraName": "[Concat('MSProm', '-','DCRA', '-', parameters('location'), '-', variables('aksClusterName'))]",
+
+        "nodeRecordingRuleGroup": "NodeRecordingRulesRuleGroup-",
+
+        "nodeRecordingRuleGroupName": "[concat(variables('nodeRecordingRuleGroup'), variables('aksClusterName'))]",
+
+        "nodeRecordingRuleGroupDescription": "Node Recording Rules RuleGroup",
+
+        "kubernetesRecordingRuleGroup": "KubernetesReccordingRulesRuleGroup-",
+
+        "kubernetesRecordingRuleGroupName": "[concat(variables('kubernetesRecordingRuleGroup'), variables('aksClusterName'))]",
+
+        "kubernetesRecordingRuleGroupDescription": "Kubernetes Recording Rules RuleGroup",
+
+        "nodeRecordingRuleGroupWin": "NodeRecordingRulesRuleGroup-Win-",
+
+        "nodeAndKubernetesRecordingRuleGroupWin": "NodeAndKubernetesRecordingRulesRuleGroup-Win-",
+
+        "nodeRecordingRuleGroupNameWin": "[concat(variables('nodeRecordingRuleGroupWin'), variables('aksClusterName'))]",
+
+        "nodeAndKubernetesRecordingRuleGroupNameWin": "[concat(variables('nodeAndKubernetesRecordingRuleGroupWin'), variables('aksClusterName'))]",
+
+        "RecordingRuleGroupDescriptionWin": "Kubernetes Recording Rules RuleGroup for Win",
+
+        "version": " - 0.1"
+
+    },
+
+    "resources": [
+
+        {
+
+            "type": "microsoft.monitor/accounts",
+
+            "apiVersion": "2023-04-03",
+
+            "name": "[parameters('azureMonitiorWorkspaceName')]",
+
+            "location": "[parameters('location')]",
+
+            "properties": {}
+
+        },
+
+        {
+
+            "type": "Microsoft.Insights/dataCollectionEndpoints",
+
+            "apiVersion": "2022-06-01",
+
+            "name": "[variables('dceName')]",
+
+            "location": "[parameters('location')]",
+
+            "kind": "Linux",
+
+            "properties": {}
+
+        },
+
+        {
+
+            "type": "Microsoft.Insights/dataCollectionRules",
+
+            "apiVersion": "2022-06-01",
+
+            "name": "[variables('dcrName')]",
+
+            "location": "[parameters('location')]",
+
+            "kind": "Linux",
+
+            "properties": {
+
+                "dataCollectionEndpointId": "[resourceId('Microsoft.Insights/dataCollectionEndpoints/', variables('dceName'))]",
+
+                "dataFlows": [
+
+                    {
+
+                        "destinations": [
+
+                            "MonitoringAccount1"
+
+                        ],
+
+                        "streams": [
+
+                            "Microsoft-PrometheusMetrics"
+
+                        ]
+
+                    }
+
+                ],
+
+                "dataSources": {
+
+                    "prometheusForwarder": [
+
+                        {
+
+                            "name": "PrometheusDataSource",
+
+                            "streams": [
+
+                                "Microsoft-PrometheusMetrics"
+
+                            ],
+
+                            "labelIncludeFilter": {}
+
+                        }
+
+                    ]
+
+                },
+
+                "description": "DCR for Azure Monitor Metrics Profile (Managed Prometheus)",
+
+                "destinations": {
+
+                    "monitoringAccounts": [
+
+                        {
+
+                            "accountResourceId": "[resourceId('microsoft.monitor/accounts', parameters('azureMonitiorWorkspaceName'))]",
+
+                            "name": "MonitoringAccount1"
+
+                        }
+
+                    ]
+
+                }
+
+            },
+
+            "dependsOn": [
+
+                "[resourceId('microsoft.monitor/accounts', parameters('azureMonitiorWorkspaceName'))]",
+
+                "[resourceId('Microsoft.Insights/dataCollectionEndpoints/', variables('dceName'))]"
+
+            ]
+
+        },
+
+        {
+
+            "type": "Microsoft.Resources/deployments",
+
+            "name": "[Concat('azuremonitormetrics-dcre', '-',  uniqueString(parameters('aksClusterReasourceId')))]",
+
+            "apiVersion": "2017-05-10",
+
+            "subscriptionId": "[variables('clusterSubscriptionId')]",
+
+            "resourceGroup": "[variables('clusterResourceGroup')]",
+
+            "properties": {
+
+                "mode": "Incremental",
+
+                "template": {
+
+                    "$schema": https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#,
+
+                    "contentVersion": "1.0.0.0",
+
+                    "parameters": {},
+
+                    "variables": {},
+
+                    "resources": [
+
+                        {
+
+                            "type": "Microsoft.ContainerService/managedClusters/providers/dataCollectionRuleAssociations",
+
+                            "name": "[concat(variables('aksClusterName'),'/microsoft.insights/', 'configurationAccessEndpoint')]",
+
+                            "apiVersion": "2022-06-01",
+
+                            "location": "[parameters('location')]",
+
+                            "properties": {
+
+                                "description": "Association of data collection endpoint. Deleting this association will break the data collection for this AKS Cluster.",
+
+                                "dataCollectionEndpointId": "[resourceId('Microsoft.Insights/dataCollectionEndpoints/', variables('dceName'))]"
+
+                            }
+
+                        }
+
+                    ]
+
+                },
+
+                "parameters": {}
+
+            },
+
+            "dependsOn": [
+
+                "[resourceId('Microsoft.Insights/dataCollectionEndpoints/', variables('dceName'))]",
+
+                "[resourceId('Microsoft.Insights/dataCollectionRules', variables('dcrName'))]"
+
+            ]
+
+        }
+
+    ],
+
+    "outputs": {
+
+        "azureMonitorWorkspaceId":{
+
+            "type": "string",
+
+            "value": "[resourceId('microsoft.monitor/accounts', parameters('azureMonitiorWorkspaceName'))]"
+
+        }
+
+    }
+
+ 
+
+}
