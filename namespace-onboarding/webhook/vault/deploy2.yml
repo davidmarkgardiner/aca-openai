@@ -1,0 +1,90 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vault-test
+  namespace: ubs-system
+  labels:
+    app: vault-test
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vault-test
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  minReadySeconds: 5
+  template:
+    metadata:
+      labels:
+        app: vault-test
+        azure.workload.identity/use: "true"
+    spec:
+      serviceAccountName: vault-sa  # Replace with ${SERVICE_ACCOUNT_NAME} value
+      volumes:
+      - name: config      
+        configMap:
+          items:
+          - key: vault-agent-config.hcl
+            path: vault-agent-config.hcl
+          name: vault-agent-config
+      - name: ca-certificate
+        configMap:
+          name: ca-certificate        
+      - name: shared-data
+        emptyDir: {} 
+      - name: secret-volume
+        emptyDir: {}  # Needed for the init-create-secret container            
+      initContainers:
+      - name: vault-agent-auth
+        image: container-registry.ubs.net/hashicorp/vault:1.15.6
+        args:
+        - agent
+        - -config=/etc/vault/vault-agent-config.hcl
+        - -log-level=debug
+        env:
+        - name: VAULT_ADDR
+          value: https://vault.eu.eva.ubsdev.net
+        - name: VAULT_CACERT
+          value: "/etc/ssl/certs/ca-certificates.crt"
+        volumeMounts:
+        - mountPath: /etc/vault
+          name: config
+        - mountPath: /etc/secrets
+          name: shared-data
+        - name: ca-certificate
+          mountPath: /etc/ssl/certs
+      - name: init-create-secret
+        image: bitnami/kubectl:latest
+        command:
+          - /bin/sh
+          - -c
+          - |
+            while [ ! -f /etc/secret/.vault-token ]; do
+              echo "Waiting for Vault token..."
+              sleep 2
+            done
+            TOKEN=$(cat /etc/secret/.vault-token)
+            kubectl create secret generic vault-token --from-literal=token=$TOKEN --namespace=default --dry-run=client -o yaml | kubectl apply -f -
+        volumeMounts:
+        - name: secret-volume
+          mountPath: /etc/secret
+          readOnly: true
+      containers:
+      - name: vault-agent
+        image: hashicorp/vault:latest
+        args:
+          - agent
+          - -config=/etc/vault-agent-config.hcl
+        volumeMounts:
+        - name: config
+          mountPath: /etc/vault-agent-config.hcl
+          subPath: vault-agent-config.hcl
+        - name: secret-volume
+          mountPath: /etc/secret
+      tolerations: # used for spot nodes
+        - key: "kubernetes.azure.com/scalesetpriority"
+          operator: "Equal"
+          value: "spot"
+          effect: "NoSchedule"
