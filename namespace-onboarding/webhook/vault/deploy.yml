@@ -1,0 +1,75 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vault-agent-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vault-agent-app
+  template:
+    metadata:
+      labels:
+        app: vault-agent-app
+    spec:
+      serviceAccountName: vault-agent-sa
+      initContainers:
+      - name: init-create-secret
+        image: bitnami/kubectl:latest
+        command:
+          - /bin/sh
+          - -c
+          - |
+            while [ ! -f /etc/secret/.vault-token ]; do
+              echo "Waiting for Vault token..."
+              sleep 2
+            done
+            TOKEN=$(cat /etc/secret/.vault-token)
+            kubectl create secret generic vault-token --from-literal=token=$TOKEN --namespace=default --dry-run=client -o yaml | kubectl apply -f -
+        volumeMounts:
+        - name: secret-volume
+          mountPath: /etc/secret
+          readOnly: true
+      containers:
+      - name: vault-agent
+        image: hashicorp/vault:latest
+        args:
+          - agent
+          - -config=/etc/vault-agent-config.hcl
+        volumeMounts:
+        - name: config
+          mountPath: /etc/vault-agent-config.hcl
+          subPath: vault-agent-config.hcl
+        - name: secret-volume
+          mountPath: /etc/secret
+      volumes:
+      - name: config
+        configMap:
+          name: vault-agent-config
+      - name: secret-volume
+        emptyDir: {}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: vault-agent-config
+data:
+  vault-agent-config.hcl: |
+    pid_file = "/tmp/pidfile"
+    auto_auth {
+      method "kubernetes" {
+        mount_path = "auth/kubernetes"
+        config = {
+          role = "your-role"
+        }
+      }
+      sink "file" {
+        config = {
+          path = "/etc/secret/.vault-token"
+        }
+      }
+    }
+    template {
+      source = "/etc/vault-agent-config/template.ctmpl"
+      destination = "/etc/secret/.rendered-template"
+    }
