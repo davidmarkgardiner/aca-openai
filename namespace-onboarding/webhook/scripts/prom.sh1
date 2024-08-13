@@ -1,9 +1,9 @@
 ## always run unless the $resourceGroupName contains at54395
 if [[ "$resourceGroupName" != *"at54395"* ]]; then
   az aks update 
-fi
-
-## if resource group contains at54395 then run
-if az group list --query "[?contains(name, 'at54395')]" --output json | grep -q 'at54395'; then
-  az aks update
+else
+  if [[ "$resourceGroupName" = *"at54395"* ]]; then
+    ## if resource group contains at54395 then run
+    az aks update
+  fi
 fi
