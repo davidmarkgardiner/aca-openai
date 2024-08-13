@@ -1,0 +1,45 @@
+# values.yaml
+
+# Add the necessary Vault annotations to the pod
+podAnnotations:
+  vault.hashicorp.com/agent-inject: 'true'
+  vault.hashicorp.com/agent-init-first: 'true'
+  vault.hashicorp.com/agent-inject-secret-aad: 'secret/runtime'
+  vault.hashicorp.com/agent-inject-template-aad: |
+    {{ with secret "secret/runtime/aad/SVC_DEV_ATxxxxx_COPDEV" -}}
+    export GF_AUTH_AZUREAD_CLIENT_ID="{{ index .Data.data `client-id` }}"
+    export GF_AUTH_AZUREAD_CLIENT_SECRET="{{ .Data.data.secret }}"
+    {{- end }}
+  vault.hashicorp.com/agent-pre-populate-only: 'true'
+  vault.hashicorp.com/auth-type: 'azure'
+  vault.hashicorp.com/auth-config-authenticate_from_environment: 'true'
+  vault.hashicorp.com/auth-config-resource: 'api://vault.eu.eva.ubsdev.net'
+  vault.hashicorp.com/namespace: 'AT48725'
+  vault.hashicorp.com/role: 'UAMI_DEV_CUS_ATxxxxx'
+  vault.hashicorp.com/tls-skip-verify: 'true'
+  vault.hashicorp.com/client-timeout: '600s'
+
+# Configure the service account with workload identity
+serviceAccount:
+  create: true
+  name: informer-sa
+  annotations:
+    azure.workload.identity/use: "true"
+    azure.workload.identity/client-id: xxxxx
+
+# Command to run the application with the sourced secrets
+command: [ 'sh', '-c']
+args: ['source /vault/secrets/aad && /run.sh']
+
+# Pass the secrets to the informer
+env:
+  - name: GF_AUTH_AZUREAD_CLIENT_ID
+    valueFrom:
+      secretKeyRef:
+        name: vault-secret
+        key: client-id
+  - name: GF_AUTH_AZUREAD_CLIENT_SECRET
+    valueFrom:
+      secretKeyRef:
+        name: vault-secret
+        key: client-secret

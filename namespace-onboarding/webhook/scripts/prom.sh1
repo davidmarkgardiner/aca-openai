@@ -1,9 +1,6 @@
-## always run unless the $resourceGroupName contains at54395
-if [[ "$resourceGroupName" != *"at54395"* ]]; then
+## always run unless the $resourceGroupName contains at54392 (case-insensitive)
+if [[ "$resourceGroupName" != *"AT54392"* ]]; then
   az aks update 
 else
-  if [[ "$resourceGroupName" = *"at54395"* ]]; then
-    ## if resource group contains at54395 then run
-    az aks update
-  fi
+  az aks update
 fi
