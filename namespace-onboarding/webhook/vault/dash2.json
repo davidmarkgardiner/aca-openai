@@ -1,0 +1,10 @@
+{
+    "targets": [
+      {
+        "expr": "sum(rate(container_cpu_usage_seconds_total{namespace=~\"your-namespace-regex\"}[1w])) by (namespace)",
+        "interval": "",
+        "legendFormat": "{{namespace}}",
+        "refId": "A"
+      }
+    ]
+  }
