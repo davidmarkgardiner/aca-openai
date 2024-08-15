@@ -1,0 +1,87 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vault-test
+  namespace: ubs-system
+  labels:
+    app: vault-test
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vault-test
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  minReadySeconds: 5
+  template:
+    metadata:
+      labels:
+        app: vault-test
+        azure.workload.identity/use: "true"
+      annotations:
+        vault.hashicorp.com/agent-inject: 'true'
+        vault.hashicorp.com/agent-init-first: 'true'
+        vault.hashicorp.com/agent-inject-secret-aad: 'secret/runtime'
+        vault.hashicorp.com/agent-inject-template-aad: |
+          {{ with secret "secret/runtime/aad/SVC_DEV_ATxxxxx_COPDEV" -}}
+          export GF_AUTH_AZUREAD_CLIENT_ID="{{ index .Data.data `client-id` }}"
+          export GF_AUTH_AZUREAD_CLIENT_SECRET="{{ .Data.data.secret }}"
+          {{- end }}
+        vault.hashicorp.com/agent-pre-populate-only: 'true'
+        vault.hashicorp.com/auth-type: 'azure'
+        vault.hashicorp.com/auth-config-authenticate_from_environment: 'true'
+        vault.hashicorp.com/auth-config-resource: 'api://vault.eu.eva.ubsdev.net'
+        vault.hashicorp.com/namespace: 'AT48725'
+        vault.hashicorp.com/role: 'UAMI_DEV_CUS_AT48725'
+        vault.hashicorp.com/tls-skip-verify: 'true'
+        vault.hashicorp.com/client-timeout: '600s'
+    spec:
+      serviceAccountName: vault-sa    # Replace with ${SERVICE_ACCOUNT_NAME} value
+      serviceAccount:
+        labels:
+          azure.workload.identity/use: "true"
+        annotations:
+          azure.workload.identity/client-id: xxxxxx
+      volumes:
+      - name: ca-certificate
+        configMap:
+          name: ca-certificate        
+      - name: shared-data
+        emptyDir: {}            
+      containers:
+      - name: nginx-container
+        image: container-registry.ubs.net/nginx:1.17.9-alpine
+        command: ['sh', '-c']
+        args: ['source /vault/secrets/aad && echo $GF_AUTH_AZUREAD_CLIENT_SECRET && /run.sh']
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - mountPath: /usr/share/nginx/html
+          name: shared-data
+        resources:
+          requests: # minimum resources required
+            cpu: 125m
+            memory: 128Mi
+          limits: # maximum resources allocated
+            cpu: 250m
+            memory: 256Mi
+        env:
+        - name: client_id
+          valueFrom:
+            secretKeyRef:
+              name: GF_AUTH_AZUREAD_CLIENT_ID
+        - name: client_secret
+          valueFrom:
+            secretKeyRef:
+              name: GF_AUTH_AZUREAD_CLIENT_SECRET
+        - name: VAULT_ADDR
+          value: https://vault.eu.eva.ubsdev.net
+        - name: VAULT_CACERT
+          value: "/etc/ssl/certs/ca-certificates.crt"
+      tolerations: # used for spot nodes
+        - key: "kubernetes.azure.com/scalesetpriority"
+          operator: "Equal"
+          value: "spot"
+          effect: "NoSchedule"

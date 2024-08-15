@@ -1,0 +1,181 @@
+# apiVersion: v1
+# kind: Namespace
+# metadata:
+#   name: vault-test
+#   labels:
+#     app: vault-test
+
+---
+
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: vault-sa          # Replace with ${SERVICE_ACCOUNT_NAME} value
+  namespace: ubs-system   # Replace with ${SERVICE_ACCOUNT_NAMESPACE} value
+  annotations:
+    azure.workload.identity/client-id: abcdefgh-cdaf-4296-9029-123456789 # Replace with ${UAMI_CLIENT_ID} value
+  labels:
+    azure.workload.identity/use: "true"
+
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: vault-agent-config
+  namespace: ubs-system
+  labels:
+    app: vault-test
+data:
+  vault-agent-config.hcl: |
+    # Comment this out if running as sidecar instead of initContainer
+    exit_after_auth = true
+    pid_file = "/home/vault/pidfile"
+    auto_auth {
+      method "azure" {
+        mount_path = "auth/azure"
+        namespace = "AT99999"
+        # Specify the role name for EVA UAMI  
+        config = {
+          role = "UAMI_FAKE"
+          resource = "api://vault.eu.eva.ubsdev.net"            ## For Dev/Test
+          ##resource = https://management.core.windows.net/   ## For Prod
+          authenticate_from_environment = true
+        }
+      }
+      sink "file" {
+        config = {
+          path = "/home/vault/.vault-token"
+        }
+      }
+    }
+    template {
+      destination = "/etc/secrets/index.html"
+      contents = <<EOT
+      <html>
+      <body>
+      <p>Vault Secrets:</p>
+      {{- with secret "deploy/aad/SVC_DEV_at39473_deploy" }}
+      <ul>
+      <li><pre>client_id: {{ .Data.data.client_id }}</pre></li>
+      <li><pre>secret: {{ .Data.data.secret }}</pre></li>
+      </ul>
+      {{ end }}
+      </body>
+      </html>
+      EOT
+    }
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vault-test
+  namespace: ubs-system
+  labels:
+    app: vault-test
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vault-test
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  minReadySeconds: 5
+  template:
+    metadata:
+      labels:
+        app: vault-test
+        azure.workload.identity/use: "true"
+    spec:
+      serviceAccountName: vault-sa    # Replace with ${SERVICE_ACCOUNT_NAME} value
+      volumes:
+      - name: config      
+        configMap:
+          items:
+          - key: vault-agent-config.hcl
+            path: vault-agent-config.hcl
+          name: vault-agent-config
+      - name: ca-certificate
+        configMap:
+          name: ca-certificate        
+      - name: shared-data
+        emptyDir: {}            
+      initContainers:
+      - name: vault-agent-auth
+        image: container-registry.ubs.net/hashicorp/vault:1.15.6
+        # securityContext:
+        #   allowPrivilegeEscalation: false
+        #   capabilities:
+        #     drop:
+        #       - "ALL"
+        #   runAsNonRoot: true
+        #   readOnlyRootFilesystem: true
+        #   runAsUser: 1001
+        #   seccompProfile:
+        #     type: RuntimeDefault
+        args:
+        - agent
+        - -config=/etc/vault/vault-agent-config.hcl
+        - -log-level=debug
+        env:
+        - name: VAULT_ADDR
+          value: https://vault.eu.eva.ubsdev.net
+        - name: VAULT_CACERT
+          value: "/etc/ssl/certs/ca-certificates.crt"
+        volumeMounts:
+        - mountPath: /etc/vault
+          name: config
+        - mountPath: /etc/secrets
+          name: shared-data
+        - name: ca-certificate
+          mountPath: /etc/ssl/certs
+      containers:
+      - name: nginx-container
+        image: container-registry.ubs.net/nginx:1.17.9-alpine
+        # securityContext:
+        #   allowPrivilegeEscalation: false
+        #   capabilities:
+        #     drop:
+        #       - "ALL"
+        #   runAsNonRoot: true
+        #   readOnlyRootFilesystem: true
+        #   runAsUser: 1001
+        #   seccompProfile:
+        #     type: RuntimeDefault
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - mountPath: /usr/share/nginx/html
+          name: shared-data
+        resources:
+          requests: # minimum resources required
+            cpu: 125m
+            memory: 128Mi
+          limits: # maximum resources allocated
+            cpu: 250m
+            memory: 256Mi
+      tolerations: # used for spot nodes
+        - key: "kubernetes.azure.com/scalesetpriority"
+          operator: "Equal"
+          value: "spot"
+          effect: "NoSchedule"
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: vault-test
+  namespace: ubs-system
+  labels:
+    app: vault-test
+spec:
+  type: ClusterIP
+  ports:
+  - port: 80
+  selector:
+    app: vault-test
