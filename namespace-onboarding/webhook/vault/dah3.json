@@ -1,0 +1,53 @@
+{
+    "dashboard": {
+      "id": null,
+      "title": "Namespace Resource Usage",
+      "tags": [],
+      "timezone": "browser",
+      "schemaVersion": 16,
+      "version": 0,
+      "refresh": "5s",
+      "panels": [
+        {
+          "type": "graph",
+          "title": "CPU Usage",
+          "targets": [
+            {
+              "expr": "sum(rate(container_cpu_usage_seconds_total{namespace=~\".*\"}[1w])) by (namespace)",
+              "interval": "",
+              "legendFormat": "{{namespace}}",
+              "refId": "A"
+            }
+          ],
+          "xaxis": {
+            "show": true
+          },
+          "yaxis": {
+            "show": true,
+            "label": "CPU Usage (seconds)",
+            "logBase": 1
+          }
+        },
+        {
+          "type": "graph",
+          "title": "Memory Usage",
+          "targets": [
+            {
+              "expr": "avg_over_time(container_memory_usage_bytes{namespace=~\".*\"}[1w]) by (namespace)",
+              "interval": "",
+              "legendFormat": "{{namespace}}",
+              "refId": "B"
+            }
+          ],
+          "xaxis": {
+            "show": true
+          },
+          "yaxis": {
+            "show": true,
+            "label": "Memory Usage (bytes)",
+            "logBase": 1
+          }
+        }
+      ]
+    }
+  }
