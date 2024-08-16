@@ -1,6 +1,7 @@
 ## always run unless the $resourceGroupName contains at54392 (case-insensitive)
-if [[ "$resourceGroupName" != *"AT54392"* ]]; then
+if [[ "$resourceGroupName" != *"AT54392"* && "$resourceGroupName" != *"AT54321"* ]]; then
   az aks update 
 else
   az aks update
 fi
+

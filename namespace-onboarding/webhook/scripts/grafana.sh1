@@ -1,0 +1,38 @@
+#!/bin/bash
+## should only run if doen not already exist
+az account set --subscription $SUBSCRIPTION --output none
+echo "[INFO] Get Cluster name"
+clusterName=$(az aks list --resource-group ${resourceGroupName} --query "[].name" --output tsv)
+echo "[DEBUG] clusterName=$clusterName"
+
+set -ex
+pip config set global.trusted-host it4it-nexus-tp-repo.swissbank.com
+pip config set global.index-url https://it4it-nexus-tp-repo.swissbank.com/repository/public-lib-python-pypi/simple
+pip install pyyaml --user
+echo "[INFO] Generating Prometheus Grafana Parameters"
+python src/main/python-scripts/updateParams.py --env-yml $VAR_FILE \
+    --params-template src/main/arm/prometheus-config/grafana/grafana.azure.params._template.json \
+    --prefix-to-remove prom_grafana_
+cat src/main/arm/prometheus-config/grafana/grafana.azure.params.json
+echo "[INFO] Generating Prometheus Parameters"
+python src/main/python-scripts/updateParams.py --env-yml $VAR_FILE \
+    --params-template src/main/arm/prometheus-config/prometheus/prometheus.azure.params._template.json \
+    --prefix-to-remove prom_prom_
+cat src/main/arm/prometheus-config/prometheus/prometheus.azure.params.json
+
+# Deploy Monitoring Template
+if [[ "$resourceGroupName" = *"AT53357"* && "$resourceGroupName" = *"AT54250"* ]]; then
+echo "[INFO] Deploying AKS Grafana"
+az deployment group create \
+    --name deploy-${ENV}-prometheus--grafana \
+    --resource-group ${BASH_REMATCH[2]} \
+    --template-file src/main/arm/prometheus-config/grafana/grafana.azure.json \
+    --parameters src/main/arm/prometheus-config/grafana/grafana.azure.params.json
+fi
+
+echo "[INFO] Deploying AKS Azure Monitor"
+az deployment group create \
+    --name deploy-${clusterName}-prometheus \
+    --resource-group ${resourceGroupName} \
+    --template-file src/main/arm/prometheus-config/prometheus/prometheus.azure.json \
+    --parameters src/main/arm/prometheus-config/prometheus/prometheus.azure.params.json
