@@ -5,3 +5,19 @@ else
   az aks update
 fi
 
+---
+## Check if --enable-azure-monitor-metrics is already enabled on the cluster, if so skip the next stage
+metrics_enabled=$(az aks show --resource-group $resourceGroupName --name $clusterName --query "addonProfiles.omsagent.enabled" -o tsv)
+
+if [[ "$metrics_enabled" == "true" ]]; then
+  echo "[INFO] Azure Monitor Metrics is already enabled on the cluster. Skipping the next stage."
+else
+  ## Always run unless the $resourceGroupName contains AT54392 or AT54321 (case-insensitive)
+  if [[ "$resourceGroupName" != *"AT54392"* && "$resourceGroupName" != *"AT54321"* ]]; then
+    echo "[INFO] Updating AKS cluster to enable Azure Monitor Metrics"
+    az aks update --resource-group $resourceGroupName --name $clusterName --enable-azure-monitor-metrics
+  else
+    echo "[INFO] Updating AKS cluster without enabling Azure Monitor Metrics"
+    az aks update --resource-group $resourceGroupName --name $clusterName
+  fi
+fi
