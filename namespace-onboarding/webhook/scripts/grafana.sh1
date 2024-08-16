@@ -20,19 +20,25 @@ python src/main/python-scripts/updateParams.py --env-yml $VAR_FILE \
     --prefix-to-remove prom_prom_
 cat src/main/arm/prometheus-config/prometheus/prometheus.azure.params.json
 
+
+
 # Deploy Monitoring Template
-if [[ "$resourceGroupName" = *"AT53357"* && "$resourceGroupName" = *"AT54250"* ]]; then
-echo "[INFO] Deploying AKS Grafana"
-az deployment group create \
-    --name deploy-${ENV}-prometheus--grafana \
-    --resource-group ${BASH_REMATCH[2]} \
-    --template-file src/main/arm/prometheus-config/grafana/grafana.azure.json \
-    --parameters src/main/arm/prometheus-config/grafana/grafana.azure.params.json
+if [[ "$resourceGroupName" = *"AT53357"* || "$resourceGroupName" = *"AT54250"* ]]; then
+  echo "[INFO] Deploying AKS Grafana"
+AZURE_GRAFANA_ID=$(az deployment group create \
+      --name deploy-${ENV}-prometheus--grafana \
+      --resource-group ${resourceGroupName} \
+      --template-file src/main/arm/prometheus-config/grafana/grafana.azure.json \
+      --parameters src/main/arm/prometheus-config/grafana/grafana.azure.params.json \
+      --query properties.outputs.azureManagedGrafanaId.values -o tsv)
+  export AZURE_GRAFANA_ID
 fi
 
 echo "[INFO] Deploying AKS Azure Monitor"
-az deployment group create \
+AZURE_MONITOR_WORKSPACE_ID=$(az deployment group create \
     --name deploy-${clusterName}-prometheus \
     --resource-group ${resourceGroupName} \
     --template-file src/main/arm/prometheus-config/prometheus/prometheus.azure.json \
-    --parameters src/main/arm/prometheus-config/prometheus/prometheus.azure.params.json
+    --parameters src/main/arm/prometheus-config/prometheus/prometheus.azure.params.json \
+    --query properties.outputs.azureMonitorWorkspaceId.values -o tsv)
+export AZURE_MONITOR_WORKSPACE_ID
