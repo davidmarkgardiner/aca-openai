@@ -1,0 +1,75 @@
+To inject a secret from HashiCorp Vault into your Kubernetes environment using Vault's Agent Injector and pass it to a Helm chart via a `values.yml` file, follow these steps:
+
+### 1. Configure Vault Agent Injector
+First, set up the Vault Agent Injector in your Kubernetes cluster to inject the secret into a Kubernetes Pod's environment variables.
+
+Here's an example of how to annotate your Kubernetes deployment to use the Vault Agent Injector:
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: your-deployment
+  annotations:
+    vault.hashicorp.com/agent-inject: "true"
+    vault.hashicorp.com/role: "your-vault-role"
+    vault.hashicorp.com/agent-inject-secret-INFORMER_SECRET: "database/creds/db-app"
+    vault.hashicorp.com/agent-inject-template-INFORMER_SECRET: |
+      {{- with secret "database/creds/db-app" -}}
+      export INFORMER_SECRET='{{ .Data.data.secret }}'
+      {{- end }}
+spec:
+  template:
+    metadata:
+      annotations:
+        vault.hashicorp.com/agent-inject: "true"
+    spec:
+      containers:
+      - name: your-container
+        image: your-image
+        env:
+        - name: INFORMER_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: <your-secret-name>  # This is where the Vault Agent Injector will inject the secret
+              key: INFORMER_SECRET
+```
+
+### 2. Reference the Secret in `values.yml`
+In your Helm chart's `values.yml` file, reference the `INFORMER_SECRET` environment variable:
+
+```yaml
+# values.yml
+instance:
+  INFORMER_SECRET: "{{ env 'INFORMER_SECRET' }}"
+```
+
+### 3. Pass the Secret to the Helm Chart
+In your Helm chart, ensure that the secret is properly passed to the templates. You can do this by referencing the value from `values.yml`:
+
+```yaml
+# templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}
+spec:
+  template:
+    spec:
+      containers:
+      - name: {{ .Chart.Name }}
+        image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+        env:
+        - name: INFORMER_SECRET
+          value: "{{ .Values.instance.INFORMER_SECRET }}"
+```
+
+### 4. Deploy the Helm Chart
+Deploy your Helm chart as usual, and the secret should be injected into the Pod by the Vault Agent Injector, and then passed to the application via the Helm chart's `values.yml`.
+
+### Recap
+- **Vault Agent Injector**: Annotates the Kubernetes Pod to inject secrets from Vault.
+- **values.yml**: References the injected secret using `{{ env 'INFORMER_SECRET' }}`.
+- **Helm Chart**: Passes the secret to the application as an environment variable.
+
+This setup ensures that the secret is securely managed by Vault and injected into your Kubernetes environment, where it can be consumed by your application through Helm.
