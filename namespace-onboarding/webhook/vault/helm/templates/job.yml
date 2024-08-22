@@ -1,0 +1,41 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Values.job.name }}
+  namespace: {{ .Values.job.namespace }}
+  labels:
+    app: {{ .Values.job.name }}
+spec:
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.job.name }}
+        azure.workload.identity/use: "true"
+      annotations:
+        vault.hashicorp.com/agent-inject: "true"
+        vault.hashicorp.com/agent-init-first: 'true'  
+        vault.hashicorp.com/agent-pre-populate-only: 'true'  
+        vault.hashicorp.com/auth-type: 'azure'
+        vault.hashicorp.com/auth-config-authenticate_from_environment: 'true'    
+        vault.hashicorp.com/role: {{ .Values.job.role }}
+        vault.hashicorp.com/auth-config-resource: {{ .Values.job.authConfigResource }}
+        vault.hashicorp.com/namespace: {{ .Values.job.vaultNamespace }}
+        vault.hashicorp.com/client-timeout: '600s'
+        vault.hashicorp.com/agent-inject-file-secret: "{{ .Values.job.secretFile }}"
+        vault.hashicorp.com/agent-inject-template-secret: |
+          {{`{{ with secret "{{ .Values.job.vaultSecretPath }}" -}}`}}
+            {{`{{ "{{ .Values.job.secretData }}"  }}`}}       
+          {{`{{ end -}}`}}
+        vault.hashicorp.com/tls-skip-verify: 'true'
+    spec:
+      restartPolicy: OnFailure
+      serviceAccountName: {{ .Values.serviceAccount.name }}
+      containers:
+      - name: informer-create-secret
+        image: {{ .Values.job.image }}
+        command: ['/bin/sh', '-c']
+        args:
+          - |
+            INFORMER_SECRET=$(cat /vault/secrets/{{ .Values.job.secretFile }})
+            kubectl create secret generic {{ .Values.job.secretName }} --from-literal=.password=$INFORMER_SECRET --namespace={{ .Values.job.secretNamespace }} --dry-run=client -o yaml | kubectl apply -f -
+            exit 0;

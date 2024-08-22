@@ -1,0 +1,5 @@
+apiVersion: v2
+name: informer-vault
+description: A Helm chart for deploying a Kubernetes Job to create a secret using Vault
+version: 0.1.0
+appVersion: "1.0"

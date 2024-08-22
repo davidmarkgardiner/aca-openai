@@ -1,0 +1,25 @@
+serviceAccount:
+  name: vault-sa
+  namespace: ubs-system
+  clientId: 7364-4690-b77a
+
+role:
+  namespace: informer
+  name: secret-patch-role
+
+roleBinding:
+  name: secret-patch-binding
+  namespace: informer
+
+job:
+  name: informer-vault
+  namespace: ubs-system
+  role: UAMI_DEV_NEU_AT53357
+  authConfigResource: api://vault.eu.eva.ubsdev.net
+  vaultNamespace: AT53357
+  image: container-registry.ubs.net/ubs/devcloudlabs/az-devops:2.61.0-kubectl-1.29.2-helm-3.15.2
+  secretFile: secret.txt
+  secretPath: secret/data/runtime/12653636/SVC_SN_DEV_AT98778
+  secretData: .Data.data.password 
+  secretName: k8s-informer-cred-ubstechdev-test
+  secretNamespace: informer
