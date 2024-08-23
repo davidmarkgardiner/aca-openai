@@ -1,0 +1,166 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+configMapGenerator:
+- name: input
+  envs:
+  - input.env
+
+replacements:
+- source:
+    kind: ConfigMap
+    name: input
+    fieldPath: data.service_account_name
+  targets:
+  - select:
+      kind: HelmRelease
+      name: vault-secret
+    fieldPaths:
+    - spec.values.serviceAccount.name
+
+- source:
+    kind: ConfigMap
+    name: input
+    fieldPath: data.service_account_namespace
+  targets:
+  - select:
+      kind: HelmRelease
+      name: vault-secret
+    fieldPaths:
+    - spec.values.serviceAccount.namespace
+
+- source:
+    kind: ConfigMap
+    name: input
+    fieldPath: data.vault_client_id
+  targets:
+  - select:
+      kind: HelmRelease
+      name: vault-secret
+    fieldPaths:
+    - spec.values.serviceAccount.clientId
+
+- source:
+    kind: ConfigMap
+    name: input
+    fieldPath: data.job_role
+  targets:
+  - select:
+      kind: HelmRelease
+      name: vault-secret
+    fieldPaths:
+    - spec.values.job.role
+
+- source:
+    kind: ConfigMap
+    name: input
+    fieldPath: data.job_auth_config_resource
+  targets:
+  - select:
+      kind: HelmRelease
+      name: vault-secret
+    fieldPaths:
+    - spec.values.job.authConfigResource
+
+- source:
+    kind: ConfigMap
+    name: input
+    fieldPath: data.job_vault_namespace
+  targets:
+  - select:
+      kind: HelmRelease
+      name: vault-secret
+    fieldPaths:
+    - spec.values.job.vaultNamespace
+
+- source:
+    kind: ConfigMap
+    name: input
+    fieldPath: data.job_secret_path
+  targets:
+  - select:
+      kind: HelmRelease
+      name: vault-secret
+    fieldPaths:
+    - spec.values.job.secretPath
+
+- source:
+    kind: ConfigMap
+    name: input
+    fieldPath: data.job_secret_data
+  targets:
+  - select:
+      kind: HelmRelease
+      name: vault-secret
+    fieldPaths:
+    - spec.values.job.secretData
+
+- source:
+    kind: ConfigMap
+    name: input
+    fieldPath: data.job_secret_name
+  targets:
+  - select:
+      kind: HelmRelease
+      name: vault-secret
+    fieldPaths:
+    - spec.values.job.secretName
+
+- source:
+    kind: ConfigMap
+    name: input
+    fieldPath: data.secret_namespace
+  targets:
+  - select:
+      kind: HelmRelease
+      name: vault-secret
+    fieldPaths:
+    - spec.values.role.namespace
+    - spec.values.roleBinding.namespace
+    - spec.values.job.secretNamespace
+
+# New Helm release for vault-injector
+- source:
+    kind: ConfigMap
+    name: input
+    fieldPath: data.vault_injector_namespace
+  targets:
+  - select:
+      kind: HelmRelease
+      name: vault-injector
+    fieldPaths:
+    - spec.values.global.namespace
+
+- source:
+    kind: ConfigMap
+    name: input
+    fieldPath: data.vault_injector_enabled
+  targets:
+  - select:
+      kind: HelmRelease
+      name: vault-injector
+    fieldPaths:
+    - spec.values.global.enabled
+    - spec.values.injector.enabled
+
+- source:
+    kind: ConfigMap
+    name: input
+    fieldPath: data.vault_client_id
+  targets:
+  - select:
+      kind: HelmRelease
+      name: vault-injector
+    fieldPaths:
+    - spec.values.global.serviceAccount.annotations.azure.workload.identity/client-id
+
+- source:
+    kind: ConfigMap
+    name: input
+    fieldPath: data.service_account_name
+  targets:
+  - select:
+      kind: HelmRelease
+      name: vault-injector
+    fieldPaths:
+    - spec.values.global.serviceAccount.name

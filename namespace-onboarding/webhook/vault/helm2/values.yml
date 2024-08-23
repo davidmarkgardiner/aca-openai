@@ -1,0 +1,26 @@
+serviceAccount:
+  name: {{ .Values.service_account_name }}
+  namespace: {{ .Values.service_account_namespace }}
+  clientId: {{ .Values.vault_client_id }}
+
+role:
+  namespace: {{ .Values.secret_namespace }}
+  name: secret-patch-role
+
+roleBinding:
+  name: secret-patch-binding
+  namespace: {{ .Values.secret_namespace }}
+
+job:
+  enabled: {{ .Values.informer_secret_enabled }}
+  name: informer-vault
+  namespace: {{ .Values.service_account_namespace }}
+  role: {{ .Values.job_role }}
+  authConfigResource: {{ .Values.job_auth_config_resource }}
+  vaultNamespace: {{ .Values.job_vault_namespace }}
+  image: container-registry.ubs.net/ubs/devcloudlabs/az-devops:2.61.0-kubectl-1.29.2-helm-3.15.2
+  secretFile: secret.txt
+  secretPath: {{ .Values.job_secret_path }}
+  secretData: {{ .Values.job_secret_data }}
+  secretName: {{ .Values.job_secret_name }}
+  secretNamespace: {{ .Values.secret_namespace }}
