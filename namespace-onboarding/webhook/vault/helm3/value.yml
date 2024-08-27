@@ -1,0 +1,45 @@
+# Define anchors for reusable values
+service_account_name: &service_account_name vault-sa
+service_account_namespace: &service_account_namespace ubs-system
+vault_client_id: &vault_client_id 123345-56985-56985
+
+job_role: &job_role UAMI_DEV_NEU_AT53357
+job_auth_config_resource: &job_auth_config_resource api://vault.eu.eva.ubsdev.net
+job_vault_namespace: &job_vault_namespace AT53357
+
+job_secret_path: &job_secret_path secret/data/runtime/12653636/SVC_SN_DEV_AT98778
+job_secret_data: &job_secret_data .Data.data.password
+job_secret_name: &job_secret_name k8s-informer-cred-ubstechdev-test
+secret_namespace: &secret_namespace informer
+informer_secret_enabled: &informer_secret_enabled true
+
+vault_injector_namespace: &vault_injector_namespace ubs-system
+vault_injector_enabled: &vault_injector_enabled true
+
+# Using the aliases
+serviceAccount:
+  name: *service_account_name
+  namespace: *service_account_namespace
+  clientId: *vault_client_id
+
+role:
+  namespace: *secret_namespace
+  name: secret-patch-role
+
+roleBinding:
+  name: secret-patch-binding
+  namespace: *secret_namespace
+
+job:
+  enabled: *informer_secret_enabled
+  name: informer-vault
+  namespace: *service_account_namespace
+  role: *job_role
+  authConfigResource: *job_auth_config_resource
+  vaultNamespace: *job_vault_namespace
+  image: container-registry.ubs.net/ubs/devcloudlabs/az-devops:2.61.0-kubectl-1.29.2-helm-3.15.2
+  secretFile: secret.txt
+  secretPath: *job_secret_path
+  secretData: *job_secret_data
+  secretName: *job_secret_name
+  secretNamespace: *secret_namespace
