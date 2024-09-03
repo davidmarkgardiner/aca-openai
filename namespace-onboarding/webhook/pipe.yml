@@ -1,0 +1,10 @@
+stages:
+  - stage: RBAC_RoleBinding
+    displayName: 'RBAC Role Binding'
+    condition: and(succeeded(), eq(variables['environment'], 'dev'))
+    jobs:
+      - job: RoleBindingJob
+        displayName: 'Role Binding Job'
+        steps:
+          - script: echo "Running RBAC Role Binding for dev environment"
+            displayName: 'RBAC Role Binding Script'
