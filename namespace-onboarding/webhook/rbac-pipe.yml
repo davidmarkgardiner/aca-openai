@@ -1,0 +1,24 @@
+variables:
+  environment: 'dev'
+
+stages:
+  - stage: RBAC_RoleBinding
+    displayName: 'RBAC Role Binding'
+    jobs:
+      - job: CheckCondition
+        displayName: 'Check Condition'
+        steps:
+          - script: |
+              if [ "$(echo ${{ variables.environment }})" != "dev" ]; then
+                echo "Skipping RBAC Role Binding as the environment is not 'dev'"
+              fi
+            displayName: 'Check Environment Condition'
+        condition: always()
+
+      - job: RoleBindingJob
+        displayName: 'Role Binding Job'
+        dependsOn: CheckCondition
+        condition: and(succeeded(), eq(variables['environment'], 'dev'))
+        steps:
+          - script: echo "Running RBAC Role Binding for dev environment"
+            displayName: 'RBAC Role Binding Script'
