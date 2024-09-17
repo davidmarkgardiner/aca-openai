@@ -1,0 +1,85 @@
+#!/bin/bash
+
+# Parameters
+branch="$1"
+newBranch="$2"
+commitMessage="$3"
+gitUsername="${4:-"Azure Devops Pipeline - Kustomization Manifest Update Automation"}"
+Repo="${5:-"uk8s-cluster-config"}"
+
+# Base URI for Azure DevOps API
+baseUri="https://dev.azure.com/UBS-Cloud/UBSCloudPlatform/_apis/git/repositories/uk8s-cluster-config"
+
+# Get Azure access token
+token=$(az account get-access-token --resource "499b84ac-1321-427f-aa17-267ca6975798" --query "accessToken" --output tsv)
+echo "token: $token"
+
+# Headers
+authHeader="Authorization: Bearer $token"
+contentTypeHeader="Content-Type: application/json"
+
+# Pull request payload
+pullRequest=$(jq -n \
+  --arg sourceRefName "$newBranch" \
+  --arg targetRefName "$branch" \
+  --arg title "New UK8S-Core GitOps Release - from $newBranch to $branch" \
+  --arg description "$commitMessage" \
+  '{
+    sourceRefName: $sourceRefName,
+    targetRefName: $targetRefName,
+    title: $title,
+    description: $description,
+    completionOptions: {
+      mergeStrategy: "squash",
+      deleteSourceBranch: true,
+      transitionWorkItems: true
+    }
+  }')
+
+echo "Sending a REST call to create a new pull request from $newBranch to $branch"
+echo "$pullRequest"
+
+# REST call to create a Pull Request
+createPrUri="${baseUri}/pullrequests?api-version=7.1-preview.1"
+response=$(curl -s -w "%{http_code}" -o response.json -X POST "$createPrUri" -H "$authHeader" -H "$contentTypeHeader" -d "$pullRequest")
+statusCode=$(tail -n1 <<< "$response")
+
+if [ "$statusCode" -eq 201 ]; then
+  echo "Pull request created successfully"
+  prId=$(jq -r '.pullRequestId' response.json)
+  echo "Pull Request ID: $prId"
+
+  # Auto-approve the pull request
+  approvePrUri="${baseUri}/pullrequests/${prId}/reviewers/me?api-version=7.1-preview.1"
+  approvePayload='{"vote": 10}'
+  
+  approveResponse=$(curl -s -w "%{http_code}" -o approve_response.json -X PUT "$approvePrUri" -H "$authHeader" -H "$contentTypeHeader" -d "$approvePayload")
+  approveStatusCode=$(tail -n1 <<< "$approveResponse")
+
+  if [ "$approveStatusCode" -eq 200 ]; then
+    echo "Pull request approved successfully"
+
+    # Complete (merge) the pull request
+    completePrUri="${baseUri}/pullrequests/${prId}?api-version=7.1-preview.1"
+    completePayload='{"status": "completed"}'
+    
+    completeResponse=$(curl -s -w "%{http_code}" -o complete_response.json -X PATCH "$completePrUri" -H "$authHeader" -H "$contentTypeHeader" -d "$completePayload")
+    completeStatusCode=$(tail -n1 <<< "$completeResponse")
+
+    if [ "$completeStatusCode" -eq 200 ]; then
+      echo "Pull request completed (merged) successfully"
+    else
+      echo "Failed to complete pull request. Status code: $completeStatusCode"
+      cat complete_response.json
+    fi
+  else
+    echo "Failed to approve pull request. Status code: $approveStatusCode"
+    cat approve_response.json
+  fi
+else
+  echo "Failed to create pull request. Status code: $statusCode"
+  cat response.json
+fi
+
+# Clean up
+rm response.json approve_response.json complete_response.json 2>/dev/null
