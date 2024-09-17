@@ -1,0 +1,95 @@
+#!/bin/bash
+
+set -e  # Exit immediately if a command exits with a non-zero status.
+
+# Parameters
+branch="${1:-"refs/heads/prodRbacRoleBinding"}"
+newBranch="${2:-"refs/heads/new-manifests"}"
+commitMessage="${3:-"uk8s-cluster-config-new-manifests"}"
+gitUsername="${4:-"Azure Devops Pipeline - Kustomization Manifest Update Automation"}"
+Repo="${5:-"uk8s-cluster-config"}"
+
+# Base URI for Azure DevOps API
+baseUri="https://dev.azure.com/UBS-Cloud/UBSCloudPlatform/_apis/git/repositories/${Repo}"
+
+# Get Azure access token
+token=$(az account get-access-token --resource "499b84ac-1321-427f-aa17-267ca6975798" --query "accessToken" --output tsv)
+echo "Token retrieved successfully"
+
+# Headers
+authHeader="Authorization: Bearer $token"
+contentTypeHeader="Content-Type: application/json"
+
+# Function to check if a branch exists
+check_branch_exists() {
+    local branchName=$1
+    local branchUri="${baseUri}/refs?filter=heads/${branchName#refs/heads/}&api-version=7.1-preview.1"
+    echo "Checking branch: $branchName"
+    local branchResponse=$(curl -s -H "$authHeader" "$branchUri")
+    echo "Branch response: $branchResponse"
+    local branchExists=$(echo "$branchResponse" | jq -r '.count')
+    echo "Branch exists: $branchExists"
+    echo $branchExists
+}
+
+# Check if the target branch exists
+targetBranchExists=$(check_branch_exists "$branch")
+if [ "$targetBranchExists" -eq 0 ]; then
+    echo "Error: Target branch $branch does not exist. Exiting..."
+    exit 1
+fi
+
+# Check if the source branch exists
+sourceBranchExists=$(check_branch_exists "$newBranch")
+if [ "$sourceBranchExists" -eq 0 ]; then
+    echo "Error: Source branch $newBranch does not exist. Exiting..."
+    exit 1
+fi
+
+echo "Both source branch ($newBranch) and target branch ($branch) exist."
+
+# Pull request payload
+pullRequest=$(jq -n \
+  --arg sourceRefName "$newBranch" \
+  --arg targetRefName "$branch" \
+  --arg title "New UK8S-Core GitOps Release - from $newBranch to $branch" \
+  --arg description "$commitMessage" \
+  '{
+    sourceRefName: $sourceRefName,
+    targetRefName: $targetRefName,
+    title: $title,
+    description: $description,
+    completionOptions: {
+      mergeStrategy: "squash",
+      deleteSourceBranch: true,
+      transitionWorkItems: true
+    }
+  }')
+
+echo "Sending a REST call to create a new pull request from $newBranch to $branch"
+echo "Pull request payload: $pullRequest"
+
+# REST call to create a Pull Request
+createPrUri="${baseUri}/pullrequests?api-version=7.1-preview.1"
+response=$(curl -s -w "\n%{http_code}" -o response.json -X POST "$createPrUri" -H "$authHeader" -H "$contentTypeHeader" -d "$pullRequest")
+body=$(cat response.json)
+statusCode=$(tail -n1 <<< "$response")
+
+echo "Create PR response body: $body"
+echo "Create PR status code: $statusCode"
+
+if [ "$statusCode" -eq 201 ]; then
+  echo "Pull request created successfully"
+  prId=$(jq -r '.pullRequestId' response.json)
+  echo "Pull Request ID: $prId"
+
+  # The rest of the script remains the same...
+else
+  echo "Failed to create pull request. Status code: $statusCode"
+  echo "Response body:"
+  cat response.json
+  exit 1
+fi
+
+# Clean up
+rm response.json approve_response.json complete_response.json 2>/dev/null
