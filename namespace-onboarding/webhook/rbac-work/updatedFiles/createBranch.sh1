@@ -1,0 +1,70 @@
+#!/bin/bash
+
+# Parameters
+branch="$1"
+newBranch="$2"
+commitMessage="$3"
+gitUsername="${4:-"Azure Devops Pipeline - Kustomization Manifest Update Automation"}"
+Repo="${5:-"uk8s-cluster-config"}"
+
+# Base URI for Azure DevOps API
+baseUri="https://dev.azure.com/UBS-Cloud/UBSCloudPlatform/_apis/git/repositories/${Repo}"
+
+# Get Azure access token
+token=$(az account get-access-token --resource "499b84ac-1321-427f-aa17-267ca6975798" --query "accessToken" --output tsv)
+echo "token: $token"
+
+# Headers
+authHeader="Authorization: Bearer $token"
+contentTypeHeader="Content-Type: application/json"
+
+# Function to create a new branch
+create_branch() {
+    local sourceBranch=$1
+    local newBranch=$2
+    
+    # Get the latest commit ID of the source branch
+    commitUri="${baseUri}/stats/branches?name=${sourceBranch}&api-version=7.1-preview.1"
+    commitResponse=$(curl -s -H "$authHeader" "$commitUri")
+    latestCommitId=$(echo "$commitResponse" | jq -r '.[0].commit.commitId')
+
+    # Create the new branch
+    createBranchUri="${baseUri}/refs?api-version=7.1-preview.1"
+    createBranchPayload=$(jq -n \
+        --arg refName "refs/heads/${newBranch}" \
+        --arg objectId "$latestCommitId" \
+        '[{
+            "name": $refName,
+            "oldObjectId": "0000000000000000000000000000000000000000",
+            "newObjectId": $objectId
+        }]')
+
+    createBranchResponse=$(curl -s -w "%{http_code}" -o create_branch_response.json -X POST "$createBranchUri" -H "$authHeader" -H "$contentTypeHeader" -d "$createBranchPayload")
+    createBranchStatusCode=$(tail -n1 <<< "$createBranchResponse")
+
+    if [ "$createBranchStatusCode" -eq 200 ]; then
+        echo "Branch $newBranch created successfully"
+    else
+        echo "Failed to create branch $newBranch. Status code: $createBranchStatusCode"
+        cat create_branch_response.json
+        exit 1
+    fi
+}
+
+# Check if the new branch exists, create it if it doesn't
+branchUri="${baseUri}/refs?filter=heads/${newBranch}&api-version=7.1-preview.1"
+branchResponse=$(curl -s -H "$authHeader" "$branchUri")
+branchExists=$(echo "$branchResponse" | jq -r 'length')
+
+if [ "$branchExists" -eq 0 ]; then
+    echo "Branch $newBranch does not exist. Creating it..."
+    create_branch "$branch" "$newBranch"
+else
+    echo "Branch $newBranch already exists"
+fi
+
+# Rest of the script (creating PR, approving, and completing) remains the same
+# ... (previous PR creation, approval, and completion code here)
+
+# Clean up
+rm response.json approve_response.json complete_response.json create_branch_response.json 2>/dev/null
