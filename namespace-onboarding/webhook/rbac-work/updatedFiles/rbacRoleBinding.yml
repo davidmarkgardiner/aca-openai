@@ -42,10 +42,10 @@ stages:
         displayName: 'Check Condition'
         steps:
           - script: |
-              if [[ "$(openv)" != "preprod" && "$(openv)" != "prod" ]]; then
-                echo "Skipping RBAC Role Binding as openv is not 'preprod' or 'prod'"
+              if [[ "${{ variables.opEnvironment }}" != "preprod" && "${{ variables.opEnvironment }}" != "prod" ]]; then
+                echo "Skipping RBAC Role Binding as opEnvironment is not 'preprod' or 'prod'"
               else
-                echo "openv is $(openv), proceeding with RBAC Role Binding"
+                echo "opEnvironment is ${{ variables.opEnvironment }}, proceeding with RBAC Role Binding"
               fi
             displayName: 'Check Environment Condition'
         condition: always()
@@ -53,11 +53,11 @@ stages:
       - job: RoleBindingJob
         displayName: 'Role Binding Job'
         dependsOn: CheckCondition
-        condition: and(succeeded(), or(eq(variables['openv'], 'preprod'), eq(variables['openv'], 'prod')))
+        condition: and(succeeded(), or(eq(variables['opEnvironment'], 'preprod'), eq(variables['opEnvironment'], 'prod')))
         steps:
-          - script: echo "Running RBAC Role Binding for $(openv) environment"
+          - script: echo "Running RBAC Role Binding for ${{ variables.opEnvironment }} environment"
             displayName: 'RBAC Role Binding Script'
-            
+
 - stage: RBACRoleBinding
   dependsOn: CommitCode
   jobs:
