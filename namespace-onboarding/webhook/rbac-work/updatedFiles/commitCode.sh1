@@ -1,0 +1,30 @@
+#!/bin/bash
+
+# Parameters
+branch="$1"
+commitMessage="$2"
+gitUsername="${3:-"Azure Devops Pipeline - Kustomization Manifest Update Automation"}"
+Repo="${4:-"uk8s-cluster-config"}"
+
+# Get Azure access token
+token=$(az account get-access-token --resource "499b84ac-1321-427f-aa17-267ca6975798" --query "accessToken" --output tsv)
+echo "token: $token"
+
+# Set up git configuration
+git config --global user.email "azuredevops@example.com"
+git config --global user.name "$gitUsername"
+
+# Ensure we're on the correct branch
+git checkout $branch
+git pull origin $branch
+
+# Stage changes
+git add .
+
+# Commit changes
+git commit -m "$commitMessage"
+
+# Push changes
+git push origin $branch
+
+echo "Changes committed and pushed to $branch"
