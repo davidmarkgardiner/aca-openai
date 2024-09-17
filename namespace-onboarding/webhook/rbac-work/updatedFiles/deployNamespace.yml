@@ -1,0 +1,20 @@
+- script: |
+    git config --global user.email "azuredevops@example.com"
+    git config --global user.name "Azure DevOps Pipeline"
+    git checkout main
+    git pull origin main
+    git add environment/* # update this when repo is in sync and healthy
+    git commit -m "Updating environment manifests"
+    git push origin main
+  displayName: 'Commit and push changes directly to main'
+  env:
+    GIT_CREDENTIALS: $(gitCredentials)
+- task: AzureCLI@2
+  displayName: 'Commit Code to Main Branch'
+  inputs:
+    azureSubscription: 'ARMSvc-AT39473-ba-ise-k8s-neu-dev'
+    scriptType: 'bash'
+    scriptLocation: 'inlineScript'
+    inlineScript: |
+      chmod +x ./commitCode/commitCode.sh
+      ./commitCode/commitCode.sh "refs/heads/main" "refs/heads/main" "Updating kustomization files for gitops" "Azure DevOps Pipeline" "uk8s-cluster-config"

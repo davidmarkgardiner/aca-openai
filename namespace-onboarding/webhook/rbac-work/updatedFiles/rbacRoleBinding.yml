@@ -1,0 +1,87 @@
+trigger:
+  - main
+
+parameters:
+  - name: action
+    type: string
+    default: 'REMOVE'
+  - name: aksresid
+    type: string
+  - name: mg
+    type: string
+  - name: namespacename
+    type: string
+
+variables:
+  - group: pipeline-variables
+
+# stages:
+# - stage: CommitCode
+#   jobs:
+#   - job: CommitToMain
+#     pool:
+#       vmImage: 'ubuntu-latest'
+#     steps:
+#     - task: AzureCLI@2
+#       displayName: 'Commit Code to Main Branch'
+#       inputs:
+#         azureSubscription: 'ARMSvc-AT39473-ba-ise-k8s-neu-dev'
+#         scriptType: 'bash'
+#         scriptLocation: 'inlineScript'
+#         inlineScript: |
+#           chmod +x ./commitCode/commitCode.sh
+#           ./commitCode/commitCode.sh "refs/heads/main" "refs/heads/main" "Updating kustomization files for gitops" "Azure DevOps Pipeline" "uk8s-cluster-config"
+
+- stage: RBACRoleBinding
+  dependsOn: CommitCode
+  jobs:
+  - job: TriggerRBACPipeline
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+    - task: AzureCLI@2
+      displayName: 'Trigger RBAC Pipeline'
+      inputs:
+        azureSubscription: 'ARMSvc-AT39473-ba-ise-k8s-neu-dev'
+        scriptType: 'bash'
+        scriptLocation: 'inlineScript'
+        inlineScript: |
+          # Create payload
+          payload=$(cat <<EOF
+          {
+            "resources": {
+              "repositories": {
+                "self": {
+                  "refName": "main"
+                }
+              }
+            },
+            "templateParameters": {
+              "action": "${{ parameters.action }}",
+              "aksresid": "${{ parameters.aksresid }}",
+              "mg": "${{ parameters.mg }}",
+              "namespacename": "${{ parameters.namespacename }}"
+            },
+            "variables": {}
+          }
+          EOF
+          )
+
+          # Get Azure DevOps access token
+          token=$(az account get-access-token --resource "499b84ac-1321-427f-aa17-267ca6975798" --query "accessToken" --output tsv)
+
+          # Trigger the RBAC pipeline
+          response=$(curl -X POST \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer $token" \
+            -d "$payload" \
+            "https://dev.azure.com/UBS-CLOUD/UBSCloudPlatform/_apis/pipelines/1577/runs?api-version=6.0")
+
+          # Check the response
+          if [[ $(echo $response | jq -r '.status') == "queued" ]]; then
+            echo "RBAC pipeline triggered successfully"
+          else
+            echo "Failed to trigger RBAC pipeline"
+            echo "Response: $response"
+            exit 1
+          fi
