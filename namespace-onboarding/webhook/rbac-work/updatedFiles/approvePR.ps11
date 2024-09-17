@@ -6,47 +6,76 @@ Param(
     [String]$Repo = "uk8s-cluster-config"
 )
 
-
 # Base URI for Azure DevOps API
 $baseUri = "https://dev.azure.com/UBS-Cloud/UBSCloudPlatform/_apis/git/repositories/$Repo"
 
 # Get Azure access token
 $token = $(Get-AzAccessToken -ResourceUrl "499b84ac-1321-427f-aa17-267ca6975798").Token
-Write-Host "token: $token"
+Write-Host "Token retrieved successfully"
 
 $authHeader = @{
     'Authorization' = 'Bearer ' + $token
     'Content-Type'  = 'application/json'
 }
 
-# Create pull request
-$createPrUri = "$baseUri/pullrequests?api-version=7.1-preview.1"
-$pullRequest = @{
-    "sourceRefName" = "$newBranch"
-    "targetRefName" = "$branch"
-    "title"         = "New UK8S-Core GitOps Release - from $newBranch to $branch"
-    "description"   = $commitMessage
+function Invoke-AzureDevOpsApi {
+    param (
+        [string]$Uri,
+        [string]$Method,
+        [object]$Body,
+        [hashtable]$Headers
+    )
+
+    try {
+        $response = Invoke-RestMethod -Uri $Uri -Method $Method -Body ($Body | ConvertTo-Json -Depth 100) -Headers $Headers -ErrorAction Stop
+        return $response
+    }
+    catch {
+        $statusCode = $_.Exception.Response.StatusCode.value__
+        $statusDescription = $_.Exception.Response.StatusDescription
+        $errorMessage = $_.ErrorDetails.Message
+
+        Write-Host "Error occurred while calling Azure DevOps API:"
+        Write-Host "Status Code: $statusCode"
+        Write-Host "Status Description: $statusDescription"
+        Write-Host "Error Message: $errorMessage"
+
+        if ($statusCode -eq 401 -or $errorMessage -like "*TF401398*") {
+            Write-Host "Error TF401398: You don't have sufficient permissions to perform this operation."
+            Write-Host "Please ensure you have the necessary permissions in Azure DevOps to create, approve, and complete pull requests."
+        }
+
+        throw $_
+    }
 }
 
-$pullRequestJson = ($pullRequest | ConvertTo-Json -Depth 100)
-Write-Output "Sending a REST call to create a new pull request from $newBranch to $branch"
-Write-Output $pullRequest
-
 try {
-    $response = Invoke-RestMethod -Uri $createPrUri -Method Post -Body $pullRequestJson -Headers $authHeader
+    # Create pull request
+    Write-Host "Creating pull request from $newBranch to $branch"
+    $createPrUri = "$baseUri/pullrequests?api-version=7.1-preview.1"
+    $pullRequest = @{
+        "sourceRefName" = "$newBranch"
+        "targetRefName" = "$branch"
+        "title"         = "New UK8S-Core GitOps Release - from $newBranch to $branch"
+        "description"   = $commitMessage
+    }
+
+    $response = Invoke-AzureDevOpsApi -Uri $createPrUri -Method Post -Body $pullRequest -Headers $authHeader
     $pullRequestId = $response.pullRequestId
-    Write-Output "Pull request created successfully. Pull Request ID: $pullRequestId"
+    Write-Host "Pull request created successfully. Pull Request ID: $pullRequestId"
 
     # Auto-approve the pull request
+    Write-Host "Approving pull request"
     $approvePrUri = "$baseUri/pullrequests/$pullRequestId/reviewers/me?api-version=7.1-preview.1"
     $approvePayload = @{
         "vote" = 10
-    } | ConvertTo-Json
+    }
 
-    $approveResponse = Invoke-RestMethod -Uri $approvePrUri -Method Put -Body $approvePayload -Headers $authHeader
-    Write-Output "Pull request approved successfully"
+    $approveResponse = Invoke-AzureDevOpsApi -Uri $approvePrUri -Method Put -Body $approvePayload -Headers $authHeader
+    Write-Host "Pull request approved successfully"
 
     # Complete (merge) the pull request
+    Write-Host "Completing pull request"
     $completePrUri = "$baseUri/pullrequests/$pullRequestId?api-version=7.1-preview.1"
     $completePayload = @{
         "status" = "completed"
@@ -55,13 +84,12 @@ try {
             "deleteSourceBranch" = $true
             "transitionWorkItems" = $true
         }
-    } | ConvertTo-Json
+    }
 
-    $completeResponse = Invoke-RestMethod -Uri $completePrUri -Method Patch -Body $completePayload -Headers $authHeader
-    Write-Output "Pull request completed (merged) successfully"
+    $completeResponse = Invoke-AzureDevOpsApi -Uri $completePrUri -Method Patch -Body $completePayload -Headers $authHeader
+    Write-Host "Pull request completed (merged) successfully"
 }
 catch {
-    Write-Error "An error occurred: $_"
-    Write-Error $_.Exception.Response.StatusCode.value__
-    Write-Error $_.Exception.Response.StatusDescription
+    Write-Host "An error occurred during the process. Please check the error messages above for details."
+    exit 1
 }
