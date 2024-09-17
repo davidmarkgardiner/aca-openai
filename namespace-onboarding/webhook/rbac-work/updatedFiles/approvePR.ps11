@@ -1,0 +1,67 @@
+Param(
+    [String]$branch = "prodRbacRoleBinding",
+    [String]$newBranch = "new-manifests",
+    [String]$commitMessage = "uk8s-cluster-config-new-manifests",
+    [String]$gitUsername = "Azure Devops Pipeline - Kustomization Manifest Update Automation",
+    [String]$Repo = "uk8s-cluster-config"
+)
+
+
+# Base URI for Azure DevOps API
+$baseUri = "https://dev.azure.com/UBS-Cloud/UBSCloudPlatform/_apis/git/repositories/$Repo"
+
+# Get Azure access token
+$token = $(Get-AzAccessToken -ResourceUrl "499b84ac-1321-427f-aa17-267ca6975798").Token
+Write-Host "token: $token"
+
+$authHeader = @{
+    'Authorization' = 'Bearer ' + $token
+    'Content-Type'  = 'application/json'
+}
+
+# Create pull request
+$createPrUri = "$baseUri/pullrequests?api-version=7.1-preview.1"
+$pullRequest = @{
+    "sourceRefName" = "$newBranch"
+    "targetRefName" = "$branch"
+    "title"         = "New UK8S-Core GitOps Release - from $newBranch to $branch"
+    "description"   = $commitMessage
+}
+
+$pullRequestJson = ($pullRequest | ConvertTo-Json -Depth 100)
+Write-Output "Sending a REST call to create a new pull request from $newBranch to $branch"
+Write-Output $pullRequest
+
+try {
+    $response = Invoke-RestMethod -Uri $createPrUri -Method Post -Body $pullRequestJson -Headers $authHeader
+    $pullRequestId = $response.pullRequestId
+    Write-Output "Pull request created successfully. Pull Request ID: $pullRequestId"
+
+    # Auto-approve the pull request
+    $approvePrUri = "$baseUri/pullrequests/$pullRequestId/reviewers/me?api-version=7.1-preview.1"
+    $approvePayload = @{
+        "vote" = 10
+    } | ConvertTo-Json
+
+    $approveResponse = Invoke-RestMethod -Uri $approvePrUri -Method Put -Body $approvePayload -Headers $authHeader
+    Write-Output "Pull request approved successfully"
+
+    # Complete (merge) the pull request
+    $completePrUri = "$baseUri/pullrequests/$pullRequestId?api-version=7.1-preview.1"
+    $completePayload = @{
+        "status" = "completed"
+        "completionOptions" = @{
+            "mergeStrategy" = "squash"
+            "deleteSourceBranch" = $true
+            "transitionWorkItems" = $true
+        }
+    } | ConvertTo-Json
+
+    $completeResponse = Invoke-RestMethod -Uri $completePrUri -Method Patch -Body $completePayload -Headers $authHeader
+    Write-Output "Pull request completed (merged) successfully"
+}
+catch {
+    Write-Error "An error occurred: $_"
+    Write-Error $_.Exception.Response.StatusCode.value__
+    Write-Error $_.Exception.Response.StatusDescription
+}
