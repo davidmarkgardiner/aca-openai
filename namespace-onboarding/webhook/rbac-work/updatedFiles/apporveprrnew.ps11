@@ -1,0 +1,102 @@
+Param(
+    [String]$branch,
+    [String]$newBranch,
+    [String]$commitMessage,
+    [String]$gitUsername = "Azure Devops Pipeline - Kustomization Manifest Update Automation",
+    [String]$Repo = "uk8s-cluster-config",
+    [String]$Organization = "UBS-Cloud",
+    [String]$Project = "UBSCloudPlatform"
+)
+
+# Base URIs for Azure DevOps API
+$baseUri = "https://dev.azure.com/$Organization/$Project/_apis/git/repositories/$Repo"
+$coreUri = "https://dev.azure.com/$Organization/_apis/projects/$Project"
+
+# Get Azure access token
+$token = $(Get-AzAccessToken -ResourceUrl "499b84ac-1321-427f-aa17-267ca6975798").Token
+Write-Host "Token retrieved successfully"
+
+$authHeader = @{
+    'Authorization' = 'Bearer ' + $token
+    'Content-Type'  = 'application/json'
+}
+
+function Invoke-AzureDevOpsApi {
+    param (
+        [string]$Uri,
+        [string]$Method,
+        [object]$Body,
+        [hashtable]$Headers
+    )
+
+    try {
+        $bodyJson = if ($Body) { $Body | ConvertTo-Json -Depth 100 } else { $null }
+        $response = Invoke-RestMethod -Uri $Uri -Method $Method -Body $bodyJson -Headers $Headers -ErrorAction Stop
+        return $response
+    }
+    catch {
+        $statusCode = $_.Exception.Response.StatusCode.value__
+        $statusDescription = $_.Exception.Response.StatusDescription
+        $errorMessage = $_.ErrorDetails.Message
+
+        Write-Host "Error occurred while calling Azure DevOps API:"
+        Write-Host "Status Code: $statusCode"
+        Write-Host "Status Description: $statusDescription"
+        Write-Host "Error Message: $errorMessage"
+
+        throw $_
+    }
+}
+
+try {
+    # Get current user identity
+    Write-Host "Fetching current user identity"
+    $userUri = "$coreUri/teams?api-version=7.1-preview.3"
+    $userResponse = Invoke-AzureDevOpsApi -Uri $userUri -Method Get -Headers $authHeader
+    $currentUser = $userResponse.value[0].identity
+    $userId = $currentUser.id
+    Write-Host "Current user ID: $userId"
+
+    # Create pull request
+    Write-Host "Creating pull request from $newBranch to $branch"
+    $createPrUri = "$baseUri/pullrequests?api-version=7.1-preview.1"
+    $pullRequest = @{
+        "sourceRefName" = "$newBranch"
+        "targetRefName" = "$branch"
+        "title"         = "New UK8S-Core GitOps Release - from $newBranch to $branch"
+        "description"   = $commitMessage
+    }
+
+    $response = Invoke-AzureDevOpsApi -Uri $createPrUri -Method Post -Body $pullRequest -Headers $authHeader
+    $pullRequestId = $response.pullRequestId
+    Write-Host "Pull request created successfully. Pull Request ID: $pullRequestId"
+
+    # Auto-approve the pull request
+    Write-Host "Approving pull request"
+    $approvePrUri = "$baseUri/pullrequests/$pullRequestId/reviewers/$userId`?api-version=7.1-preview.1"
+    $approvePayload = @{
+        "vote" = 10
+    }
+
+    $approveResponse = Invoke-AzureDevOpsApi -Uri $approvePrUri -Method Put -Body $approvePayload -Headers $authHeader
+    Write-Host "Pull request approved successfully"
+
+    # Complete (merge) the pull request
+    Write-Host "Completing pull request"
+    $completePrUri = "$baseUri/pullrequests/$pullRequestId`?api-version=7.1-preview.1"
+    $completePayload = @{
+        "status" = "completed"
+        "completionOptions" = @{
+            "mergeStrategy" = "squash"
+            "deleteSourceBranch" = $true
+            "transitionWorkItems" = $true
+        }
+    }
+
+    $completeResponse = Invoke-AzureDevOpsApi -Uri $completePrUri -Method Patch -Body $completePayload -Headers $authHeader
+    Write-Host "Pull request completed (merged) successfully"
+}
+catch {
+    Write-Host "An error occurred during the process. Please check the error messages above for details."
+    exit 1
+}
