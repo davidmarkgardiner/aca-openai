@@ -32,6 +32,32 @@ variables:
 #           chmod +x ./commitCode/commitCode.sh
 #           ./commitCode/commitCode.sh "refs/heads/main" "refs/heads/main" "Updating kustomization files for gitops" "Azure DevOps Pipeline" "uk8s-cluster-config"
 
+Updated RBAC Role Binding Stage
+
+stages:
+  - stage: RBAC_RoleBinding
+    displayName: 'RBAC Role Binding'
+    jobs:
+      - job: CheckCondition
+        displayName: 'Check Condition'
+        steps:
+          - script: |
+              if [[ "$(openv)" != "preprod" && "$(openv)" != "prod" ]]; then
+                echo "Skipping RBAC Role Binding as openv is not 'preprod' or 'prod'"
+              else
+                echo "openv is $(openv), proceeding with RBAC Role Binding"
+              fi
+            displayName: 'Check Environment Condition'
+        condition: always()
+
+      - job: RoleBindingJob
+        displayName: 'Role Binding Job'
+        dependsOn: CheckCondition
+        condition: and(succeeded(), or(eq(variables['openv'], 'preprod'), eq(variables['openv'], 'prod')))
+        steps:
+          - script: echo "Running RBAC Role Binding for $(openv) environment"
+            displayName: 'RBAC Role Binding Script'
+            
 - stage: RBACRoleBinding
   dependsOn: CommitCode
   jobs:
