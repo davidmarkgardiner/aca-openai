@@ -1,7 +1,8 @@
+# Parameters
 Param(
-    [String]$branch,
-    [String]$newBranch,
-    [String]$commitMessage,
+    [String]$branch = "$(Build.SourceBranch)",
+    [String]$newBranch = "refs/heads/test-branch321",
+    [String]$commitMessage = "updating kustomization files for gitops",
     [String]$gitUsername = "Azure Devops Pipeline - Kustomization Manifest Update Automation",
     [String]$Repo = "uk8s-cluster-config",
     [String]$Organization = "UBS-Cloud",
@@ -13,7 +14,7 @@ $baseUri = "https://dev.azure.com/$Organization/$Project/_apis/git/repositories/
 $coreUri = "https://dev.azure.com/$Organization/_apis/projects/$Project"
 
 # Get Azure access token
-$token = $(Get-AzAccessToken -ResourceUrl "499b84ac-1321-427f-aa17-267ca6975798").Token
+$token = $(Get-AzAccessToken -ResourceUrl "-1321-427f-aa17-").Token
 Write-Host "Token retrieved successfully"
 
 $authHeader = @{
