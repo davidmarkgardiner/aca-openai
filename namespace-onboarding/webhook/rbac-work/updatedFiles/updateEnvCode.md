@@ -70,7 +70,7 @@ This approach ensures the pipeline remains self-contained and removes the depend
 
 
 ---
-
+```
 #!/bin/bash
 
 # Function to parse aksclusterresourceid
@@ -80,7 +80,7 @@ parse_aksclusterresourceid() {
     rg=$(echo "$aksclusterresourceid" | awk -F'/' '{print $5}')
     clustername=$(echo "$aksclusterresourceid" | awk -F'/' '{print $9}')
 }
-
+```
 # Parse the aksclusterresourceid
 
 ```
