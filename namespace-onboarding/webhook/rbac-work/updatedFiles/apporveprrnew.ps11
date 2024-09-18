@@ -71,6 +71,9 @@ try {
     $pullRequestId = $response.pullRequestId
     Write-Host "Pull request created successfully. Pull Request ID: $pullRequestId"
 
+    # Wait for a short period to ensure the PR is fully created
+    Start-Sleep -Seconds 5
+
     # Auto-approve the pull request
     Write-Host "Approving pull request"
     $approvePrUri = "$baseUri/pullrequests/$pullRequestId/reviewers/$userId`?api-version=7.1-preview.1"
@@ -80,6 +83,9 @@ try {
 
     $approveResponse = Invoke-AzureDevOpsApi -Uri $approvePrUri -Method Put -Body $approvePayload -Headers $authHeader
     Write-Host "Pull request approved successfully"
+
+    # Wait for a short period to ensure the approval is processed
+    Start-Sleep -Seconds 5
 
     # Complete (merge) the pull request
     Write-Host "Completing pull request"
