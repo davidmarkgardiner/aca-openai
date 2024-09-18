@@ -82,6 +82,8 @@ parse_aksclusterresourceid() {
 }
 
 # Parse the aksclusterresourceid
+
+```
 parse_aksclusterresourceid "$aksclusterresourceid"
 
 variables=$(cat <<EOF
@@ -132,7 +134,7 @@ else
 fi
 
 ```
-
+```
 #!/bin/bash
 
 # Example aksclusterresourceid
