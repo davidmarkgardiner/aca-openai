@@ -38,6 +38,23 @@ steps:
     echo "##vso[task.setvariable variable=clustername]$CLUSTERNAME"
   displayName: 'Parse AKS Cluster Resource ID'
 ```
+```
+
+steps:
+- script: |
+    echo "Parsing the aksclusterresourceid..."
+    # Extract subscription ID (field 2)
+    SUB=$(echo $(aksclusterresourceid) | cut -d '/' -f 2)
+    # Extract resource group (field 4)
+    RG=$(echo $(aksclusterresourceid) | cut -d '/' -f 4)
+    # Extract cluster name (field 8)
+    CLUSTERNAME=$(echo $(aksclusterresourceid) | cut -d '/' -f 8)
+    echo "##vso[task.setvariable variable=sub]$SUB"
+    echo "##vso[task.setvariable variable=rg]$RG"
+    echo "##vso[task.setvariable variable=clustername]$CLUSTERNAME"
+  displayName: 'Parse AKS Cluster Resource ID'
+
+```
 
 - **Explanation:**
   - The `cut` command is used to extract the necessary parts of the `aksclusterresourceid` string.
