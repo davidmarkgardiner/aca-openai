@@ -9,8 +9,8 @@ stages:
         displayName: 'Check Condition'
         steps:
           - script: |
-              if [ "$(echo ${{ variables.opEnvironment }})" != "dev" ]; then
-                echo "Skipping RBAC Role Binding as the environment is not 'dev'"
+              if [ "$(echo ${{ variables.opEnvironment }})" != "dev" ] && [ "$(echo ${{ variables.opEnvironment }})" != "test" ]; then
+                echo "Skipping RBAC Role Binding as the environment is not 'dev' or 'test'"
               fi
             displayName: 'Check Environment Condition'
         condition: always()
