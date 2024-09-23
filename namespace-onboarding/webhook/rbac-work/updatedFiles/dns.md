@@ -48,21 +48,24 @@ steps:
       az login --service-principal -u $servicePrincipalId -p $servicePrincipalKey --tenant $tenantId
       # Define the resource group name
       rg=$rg
-
       # Check if the resource group name contains "AKS" and does not contain "at39473"
       if [[ "$rg" == *"AKS"* && "$rg" != *"at39473"* ]]; then
         # Replace the last part of the resource group name
         newRg="${rg%_*}_PRIVATEDNS"
-        echo "New resource group name: $newRg"
+        echo "New resource group name: $newRg" 
+        # Get the list of private DNS zones
+        dnsZoneList=$(az network private-dns zone list --resource-group $newRg --output json)
+        # Extract the 'name' property from each DNS zone
+        dnsZoneName=$(echo $dnsZoneList | jq -r '.[].name')
       else
         echo "Resource group name does not meet the criteria."
+        # Hardcode the DNS zone name
+        dnsZoneName="test-akseng-gitops"
       fi
-      # Print the new resource group name
-      echo "New Resource Group: $newRg"
-      # Get the list of private DNS zones
-      dnsZoneList=$(az network private-dns zone list --resource-group $newRg --output json)
-      # Extract the 'name' property from each DNS zone
-      dnsZoneName=$(echo $dnsZoneList | jq -r '.[].name')
+      # Print the DNS zone names
+      echo "DNS Zone Name: $dnsZoneName"
+      # Set the result as a pipeline variable
+      echo "##vso[task.setvariable variable=dnsZone]$dnsZoneName"
       # Print the DNS zone names
       echo "DNS Zone Name: $dnsZoneName"
       # Set the result as a pipeline variable
