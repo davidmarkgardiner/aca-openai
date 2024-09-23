@@ -48,8 +48,15 @@ steps:
       az login --service-principal -u $servicePrincipalId -p $servicePrincipalKey --tenant $tenantId
       # Define the resource group name
       rg=$rg
-      # Replace the last part of the resource group name
-      newRg="${rg%_*}_PRIVATEDNS"
+
+      # Check if the resource group name contains "AKS" and does not contain "at39473"
+      if [[ "$rg" == *"AKS"* && "$rg" != *"at39473"* ]]; then
+        # Replace the last part of the resource group name
+        newRg="${rg%_*}_PRIVATEDNS"
+        echo "New resource group name: $newRg"
+      else
+        echo "Resource group name does not meet the criteria."
+      fi
       # Print the new resource group name
       echo "New Resource Group: $newRg"
       # Get the list of private DNS zones
