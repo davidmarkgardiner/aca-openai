@@ -17,3 +17,29 @@ export SUB="7316378569837695"
 export RG="at39473-aks"
 export CLUSTERNAME="cluster1"
 export ID="dummy_id"
+
+# Print the environment variables to verify
+printenv | grep -E 'ACTION|SWCI|SUFFIX|REGION|OPENVIRONMENT|RESOURCEQUOTACPU|RESOURCEQUOTAMEMORYGB|RESOURCEQUOTASTORAGEGB|BILLINGREFERENCE|SOURCE|SWCID|DATACLASSIFICATION|APPSUBDOMAIN|ALLOWACCESSFROMNS|REQUESTEDBY|SUB|RG|CLUSTERNAME|ID'
+
+$env:ACTION = "remove"
+$env:SWCI = "at39473"
+$env:SUFFIX = "dev"
+$env:REGION = "westeurope"
+$env:OPENVIRONMENT = "dev"
+$env:RESOURCEQUOTACPU = "1"
+$env:RESOURCEQUOTAMEMORYGB = "1"
+$env:RESOURCEQUOTASTORAGEGB = "1"
+$env:BILLINGREFERENCE = "AGSIGIUGB"
+$env:SOURCE = "dummy_source"
+$env:SWCID = "at39473"
+$env:DATACLASSIFICATION = "dummy_data_classification"
+$env:APPSUBDOMAIN = "dummy_app_sub_domain"
+$env:ALLOWACCESSFROMNS = "dummy_allow_access_from_ns"
+$env:REQUESTEDBY = "dummy_requested_by"
+$env:SUB = "7316378569837695"
+$env:RG = "at39473-aks"
+$env:CLUSTERNAME = "cluster1"
+$env:ID = "dummy_id"
+
+# Print the environment variables to verify
+Get-ChildItem Env: | Where-Object { $_.Name -match 'ACTION|SWCI|SUFFIX|REGION|OPENVIRONMENT|RESOURCEQUOTACPU|RESOURCEQUOTAMEMORYGB|RESOURCEQUOTASTORAGEGB|BILLINGREFERENCE|SOURCE|SWCID|DATACLASSIFICATION|APPSUBDOMAIN|ALLOWACCESSFROMNS|REQUESTEDBY|SUB|RG|CLUSTERNAME|ID' } | ForEach-Object { "$($_.Name)=$($_.Value)" }
