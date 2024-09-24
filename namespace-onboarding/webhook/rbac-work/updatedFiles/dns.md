@@ -113,3 +113,33 @@ echo "DNS Zone Name: $dnsZoneName"
 # Set the result as a pipeline variable
 echo "##vso[task.setvariable variable=dnsZone]$dnsZoneName"
 ```
+
+```
+#!/bin/bash
+
+# Log in using the service principal
+az login --service-principal -u $servicePrincipalId -p $servicePrincipalKey --tenant $tenantId
+
+# Define the resource group name
+rg=$rg
+
+# Check if the resource group name ends with "_AKS" and does not start with "AT39473" (case-insensitive)
+if [[ "$rg" == *"_AKS" && "${rg,,}" != at39473* ]]; then
+  # Replace the last part of the resource group name
+  newRg="${rg%_*}_PRIVATEDNS"
+  echo "New resource group name: $newRg" 
+  # Get the list of private DNS zones
+  dnsZoneList=$(az network private-dns zone list --resource-group $newRg --output json)
+  # Extract the 'name' property from each DNS zone
+  dnsZoneName=$(echo $dnsZoneList | jq -r '.[].name')
+else
+  echo "Resource group name does not meet the criteria. RG: $rg"
+  # Hardcode the DNS zone name
+  dnsZoneName="test-akseng-gitops"
+fi
+
+# Print the DNS zone name
+echo "DNS Zone Name: $dnsZoneName"
+# Set the result as a pipeline variable
+echo "##vso[task.setvariable variable=dnsZone]$dnsZoneName"
+```
