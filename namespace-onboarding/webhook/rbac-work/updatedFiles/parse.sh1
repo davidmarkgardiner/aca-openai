@@ -35,3 +35,5 @@ jq -r '
   } |
   "Requests CPU: \(.requests_cpu)\nRequests Memory: \(.requests_memory)"
 ' resourcequotas.json
+
+kubectl get ns --no-headers | grep -vE '^(at53357|at39473)$' | wc -l
