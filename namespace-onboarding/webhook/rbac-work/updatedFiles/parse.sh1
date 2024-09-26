@@ -37,3 +37,4 @@ jq -r '
 ' resourcequotas.json
 
 kubectl get ns --no-headers | grep -vE '^(at53357|at39473)$' | wc -l
+kubectl get ns --no-headers | grep '^at' | grep -vE '53357|39473' | wc -l
