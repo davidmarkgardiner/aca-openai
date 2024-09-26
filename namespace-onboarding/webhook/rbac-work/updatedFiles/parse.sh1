@@ -25,3 +25,13 @@ jq -r '
   } |
   "Pod: \(.name) | Namespace: \(.namespace) | CPU: \(.cpu) | Memory: \(.memory)"
 ' resourcerequest.json
+
+
+jq -r '
+  .items[] |
+  {
+    requests_cpu: .spec.hard["requests.cpu"],
+    requests_memory: .spec.hard["requests.memory"]
+  } |
+  "Requests CPU: \(.requests_cpu)\nRequests Memory: \(.requests_memory)"
+' resourcequotas.json
