@@ -38,3 +38,9 @@ jq -r '
 
 kubectl get ns --no-headers | grep -vE '^(at53357|at39473)$' | wc -l
 kubectl get ns --no-headers | grep '^at' | grep -vE '53357|39473' | wc -l
+
+for ns in $(kubectl get ns --no-headers | grep '^at' | grep -E '53357|39473' | awk '{print $1}'); do
+  echo "Namespace: $ns"
+  kubectl get pods -n $ns
+  echo ""
+done
