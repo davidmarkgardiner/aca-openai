@@ -1,0 +1,13 @@
+#!/bin/bash
+
+# Parse the JSON file and categorize pods by their resource requests
+jq -r '
+  .items[] |
+  {
+    name: .metadata.name,
+    namespace: .metadata.namespace,
+    cpu: .spec.containers[].resources.requests.cpu,
+    memory: .spec.containers[].resources.requests.memory
+  } |
+  "Pod: \(.name) | Namespace: \(.namespace) | CPU: \(.cpu) | Memory: \(.memory)"
+' pods.json
