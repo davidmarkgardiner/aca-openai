@@ -1,0 +1,11 @@
+if [ "$method" = "POST" ] || [ "$method" = "PUT" ] || [ "$method" = "PATCH" ]; then
+    content_length=$(echo -n "$data" | wc -c)
+    response=$(curl -s -X $method \
+      "$url" \
+      -H "Content-Type: application/json" \
+      -H "Content-Length: $content_length" \
+      -H "Authorization: Basic $(echo -n :$PAT | base64)" \
+      -d "$data")
+else
+    # ... (GET requests remain unchanged)
+fi
