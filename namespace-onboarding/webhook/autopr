@@ -1,0 +1,180 @@
+#!/bin/bash
+
+set -e  # Exit immediately if a command exits with a non-zero status.
+
+# Set your Azure DevOps organization, project, and repository details
+ORGANIZATION="home-k8s"
+PROJECT="pullrequest"
+REPO_ID="pullrequest"
+PAT=""
+
+# Set branch and PR details
+BRANCH_NAME="feature/automated-branch-$(date +%s)"
+PR_TITLE="Automated Pull Request"
+PR_DESCRIPTION="This is an automated pull request created by a script."
+
+# Create a new branch
+git checkout -b $BRANCH_NAME
+
+
+# Make changes (for this example, we'll create a new file)
+echo "This is an automated change" > automated_change-$(date +%s).txt
+# git add automated_change.txt
+git add .
+git commit -m "Automated commit"
+
+# Push the new branch to remote
+git push origin $BRANCH_NAME
+# Function to make API calls
+make_api_call() {
+    local method=$1
+    local url=$2
+    local data=$3
+    
+    response=$(curl -s -X $method \
+      "$url" \
+      -H "Content-Type: application/json" \
+      -H "Authorization: Basic $(echo -n :$PAT | base64)" \
+      ${data:+-d "$data"})
+    
+    if [ $? -ne 0 ]; then
+        echo "Error making API call to $url"
+        echo "Response: $response"
+        exit 1
+    fi
+    
+    echo "$response"
+}
+
+# Create a pull request
+echo "Creating pull request..."
+PR_DATA=$(cat <<EOF
+{
+    "sourceRefName": "refs/heads/$BRANCH_NAME",
+    "targetRefName": "refs/heads/main",
+    "title": "$PR_TITLE",
+    "description": "$PR_DESCRIPTION"
+}
+EOF
+)
+
+PR_RESPONSE=$(make_api_call POST "https://dev.azure.com/$ORGANIZATION/$PROJECT/_apis/git/repositories/$REPO_ID/pullrequests?api-version=7.1" "$PR_DATA")
+echo "Raw PR Response: $PR_RESPONSE"
+
+# Extract the PR ID from the response
+PR_ID=$(echo "$PR_RESPONSE" | jq -r '.pullRequestId')
+
+if [ -z "$PR_ID" ] || [ "$PR_ID" == "null" ]; then
+    echo "Failed to create pull request or extract PR ID. Response: $PR_RESPONSE"
+    exit 1
+fi
+
+echo "Pull request created with ID: $PR_ID"
+
+# Extract the user ID from the PR creation response
+USER_ID=$(echo "$PR_RESPONSE" | jq -r '.createdBy.id')
+echo "User ID: $USER_ID"
+
+if [ -z "$USER_ID" ] || [ "$USER_ID" == "null" ]; then
+    echo "Failed to extract user ID from PR response."
+    exit 1
+fi
+
+# Add the email of the additional approver
+ADDITIONAL_APPROVER_EMAIL="approver2@gmail.com"  # Replace with a real email
+
+# Function to approve PR
+approve_pr() {
+    local approver_id=$1
+    local approver_email=$2
+    APPROVE_DATA='{
+        "vote": 10
+    }'
+    APPROVE_RESPONSE=$(make_api_call PUT "https://dev.azure.com/$ORGANIZATION/$PROJECT/_apis/git/repositories/$REPO_ID/pullrequests/$PR_ID/reviewers/$approver_id?api-version=7.1" "$APPROVE_DATA")
+    echo "Approval Response for $approver_email: $APPROVE_RESPONSE"
+
+    if echo "$APPROVE_RESPONSE" | jq -e '.vote == 10' > /dev/null; then
+        echo "Pull request approved successfully by $approver_email."
+    else
+        echo "Failed to approve pull request by $approver_email. Response: $APPROVE_RESPONSE"
+        return 1
+    fi
+}
+
+# Extract the user ID from the PR creation response
+USER_ID=$(echo "$PR_RESPONSE" | jq -r '.createdBy.id')
+USER_EMAIL=$(echo "$PR_RESPONSE" | jq -r '.createdBy.uniqueName')
+echo "User ID: $USER_ID"
+echo "User Email: $USER_EMAIL"
+
+if [ -z "$USER_ID" ] || [ "$USER_ID" == "null" ]; then
+    echo "Failed to extract user ID from PR response."
+    exit 1
+fi
+
+# Approve the pull request as the current user
+approve_pr "$USER_ID" "$USER_EMAIL"
+
+# Check if the additional approver exists and get their ID
+if [ -n "$ADDITIONAL_APPROVER_EMAIL" ]; then
+    echo "Checking for additional approver: $ADDITIONAL_APPROVER_EMAIL"
+    ADDITIONAL_APPROVER_RESPONSE=$(make_api_call GET "https://vssps.dev.azure.com/$ORGANIZATION/_apis/graph/users?api-version=7.1-preview.1&\$filter=mailAddress eq '$ADDITIONAL_APPROVER_EMAIL'")
+    echo "Additional Approver Response: $ADDITIONAL_APPROVER_RESPONSE"
+
+    ADDITIONAL_APPROVER_ID=$(echo "$ADDITIONAL_APPROVER_RESPONSE" | jq -r '.value[0].originId')
+
+    if [ -n "$ADDITIONAL_APPROVER_ID" ] && [ "$ADDITIONAL_APPROVER_ID" != "null" ]; then
+        echo "Additional Approver ID: $ADDITIONAL_APPROVER_ID"
+        
+        # Add the additional approver to the PR
+        ADD_REVIEWER_DATA='{
+            "reviewerId": "'$ADDITIONAL_APPROVER_ID'"
+        }'
+        ADD_REVIEWER_RESPONSE=$(make_api_call POST "https://dev.azure.com/$ORGANIZATION/$PROJECT/_apis/git/repositories/$REPO_ID/pullrequests/$PR_ID/reviewers?api-version=7.1" "$ADD_REVIEWER_DATA")
+        echo "Add Reviewer Response: $ADD_REVIEWER_RESPONSE"
+        
+        if echo "$ADD_REVIEWER_RESPONSE" | jq -e '.id' > /dev/null; then
+            echo "Additional approver added successfully to the PR."
+            # Approve the PR as the additional approver
+            approve_pr "$ADDITIONAL_APPROVER_ID" "$ADDITIONAL_APPROVER_EMAIL"
+        else
+            echo "Failed to add additional approver to the PR. Response: $ADD_REVIEWER_RESPONSE"
+        fi
+    else
+        echo "Additional approver not found or invalid. Response: $ADDITIONAL_APPROVER_RESPONSE"
+        echo "Make sure the email address $ADDITIONAL_APPROVER_EMAIL is correct and associated with a valid Azure DevOps account in your organization."
+    fi
+else
+    echo "No additional approver email set. Skipping additional approval."
+fi
+
+# Check the status of the pull request
+PR_STATUS=$(make_api_call GET "https://dev.azure.com/$ORGANIZATION/$PROJECT/_apis/git/repositories/$REPO_ID/pullrequests/$PR_ID?api-version=7.1")
+echo "Pull Request Status: $PR_STATUS"
+if echo "$PR_STATUS" | jq -e '.status == "completed"' > /dev/null; then
+    echo "Pull request has been automatically merged."
+else
+    echo "Attempting to complete the pull request..."
+    COMPLETE_DATA='{
+        "status": "completed",
+        "lastMergeSourceCommit": {
+            "commitId": "'$(echo "$PR_STATUS" | jq -r '.lastMergeSourceCommit.commitId')'"
+        },
+        "completionOptions": {
+            "deleteSourceBranch": true,
+            "mergeCommitMessage": "Merging PR #'$PR_ID'"
+        }
+    }'
+    
+    COMPLETE_RESPONSE=$(make_api_call PATCH "https://dev.azure.com/$ORGANIZATION/$PROJECT/_apis/git/repositories/$REPO_ID/pullrequests/$PR_ID?api-version=7.1" "$COMPLETE_DATA")
+    echo "Completion Response: $COMPLETE_RESPONSE"
+    
+    if echo "$COMPLETE_RESPONSE" | jq -e '.status == "completed"' > /dev/null; then
+        echo "Pull request completed successfully."
+    else
+        echo "Failed to complete pull request. Response: $COMPLETE_RESPONSE"
+        exit 1
+    fi
+fi
+
+echo "Workflow completed successfully!"
