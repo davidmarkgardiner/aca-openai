@@ -15,3 +15,18 @@ echo "Number of pods across all namespaces: $pod_count"
 # Optional: Get count of pods per namespace
 echo -e "\nPod count per namespace:"
 kubectl get pods --all-namespaces --no-headers | awk '{print $1}' | sort | uniq -c | awk '{print $2 ": " $1}'
+
+
+#!/bin/bash
+
+# Get count of namespaces
+namespace_count=$(kubectl get namespaces --no-headers | wc -l)
+echo "Total number of namespaces: $namespace_count"
+
+# Get count of services across all namespaces
+service_count=$(kubectl get services --all-namespaces --no-headers | wc -l)
+echo "Total number of services: $service_count"
+
+# Get count of pods across all namespaces
+pod_count=$(kubectl get pods --all-namespaces --no-headers | wc -l)
+echo "Total number of pods: $pod_count"
