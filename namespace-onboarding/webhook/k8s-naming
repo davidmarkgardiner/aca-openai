@@ -1,0 +1,23 @@
+# Kubernetes Cluster Naming Convention
+
+Format: 
+`{zone}-{region}-{access}-k8s-{swci}-{subref}`
+
+Where:
+- `{zone}`: 'r' for red zone, 'g' for green zone
+- `{region}`: 3-letter code for the region (e.g., 'use' for US East, 'euw' for Europe West)
+- `{access}`: 'int' for internal, 'ext' for external
+- `k8s`: static identifier for Kubernetes clusters
+- `{swci}`: 4-digit Software Component Identifier
+- `{subref}`: 3-character unique reference from subscription name
+
+Examples:
+1. `r-use-int-k8s-0001-abc`: Red zone, US East, Internal, SWCI 0001, subscription ref 'abc'
+2. `g-euw-ext-k8s-0002-xyz`: Green zone, Europe West, External, SWCI 0002, subscription ref 'xyz'
+3. `r-aps-int-k8s-0003-def`: Red zone, Asia Pacific South, Internal, SWCI 0003, subscription ref 'def'
+
+Notes:
+- Use lowercase for all parts of the name to avoid case-sensitivity issues.
+- Separate each component with hyphens for better readability.
+- Ensure the SWCI is always 4 digits, using leading zeros if necessary.
+- The subscription reference should always be 3 characters, derived from the subscription name.
