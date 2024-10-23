@@ -13,10 +13,9 @@ import (
 // Each field corresponds to a required environment variable
 type Config struct {
 	// Required for directory structure
-	Swci          string // Software Component ID
-	Suffix        string // Environment suffix
 	Region        string // Deployment region
 	OpEnvironment string // Operational environment (dev/test/prod)
+	NamespaceName string // Namespace name (combines swci, environment and suffix)
 
 	// Required for git-repository.yaml content
 	GitLabRepoURL string // URL of the GitLab repository
@@ -77,10 +76,9 @@ func loadConfig() (*Config, error) {
 	}
 
 	// Apply case transformations for consistency
-	config.Swci = strings.ToLower(config.Swci)
-	config.Suffix = strings.ToLower(config.Suffix)
 	config.Region = strings.ToLower(config.Region)
 	config.OpEnvironment = strings.ToLower(config.OpEnvironment)
+	config.NamespaceName = strings.ToLower(config.NamespaceName)
 	config.GitLabRepoURL = strings.ToLower(config.GitLabRepoURL)
 	config.BranchName = strings.ToLower(config.BranchName)
 	config.FolderPath = strings.ToLower(config.FolderPath)
@@ -90,19 +88,26 @@ func loadConfig() (*Config, error) {
 
 // processGitRepository handles the creation and population of the git-repository.yaml file
 func processGitRepository(config *Config) error {
-	// Determine the correct environment directory
-	// If environment is 'test', use 'dev' directory
+	// Split the namespace name to check for test pattern
+	nameParts := strings.Split(config.NamespaceName, "-")
 	envDir := config.OpEnvironment
-	if strings.ToLower(config.OpEnvironment) == "test" {
+
+	// Check if namespace contains "-test-" pattern and modify accordingly
+	if len(nameParts) >= 3 && nameParts[1] == "test" {
 		envDir = "dev"
+		// Create modified namespace name with "dev" instead of "test"
+		nameParts[1] = "dev"
+		modifiedNamespace := strings.Join(nameParts, "-")
+		log.Printf("Modified namespace from %s to %s", config.NamespaceName, modifiedNamespace)
+		config.NamespaceName = modifiedNamespace
 	}
 
-	// Construct the target directory path
+	// Construct the target directory path using modified namespacename
 	targetDir := filepath.Join(
 		environmentDir,
 		envDir,
 		config.Region,
-		fmt.Sprintf("%s-%s-%s", config.Swci, config.OpEnvironment, config.Suffix),
+		config.NamespaceName,
 	)
 	log.Printf("Target directory: %s", targetDir)
 
